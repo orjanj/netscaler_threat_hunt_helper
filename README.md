@@ -44,7 +44,7 @@ Each run writes a final **Hunt summary** to the terminal and, when report writin
 
 ## Intelligence scope and verification date
 
-The indicator set and hunting logic in version **1.0** were reviewed against public reporting available on **2026-10-01**.
+The indicator set and hunting logic in version **1.1** were reviewed against public reporting available on **2026-10-02**.
 
 The campaign is evolving. IP addresses, payload names, hashes, web-shell paths, and techniques can change quickly. Always compare this repository with the latest Citrix advisory and current incident-response reporting before treating the built-in IOC set as complete.
 
@@ -87,7 +87,15 @@ The script uses GTIG/Mandiant observations for, among other things:
 
 https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
 
-The script uses Unit 42 reporting for pre-disclosure infrastructure, web-shell paths, and SHA-256 indicators.
+The script uses Unit 42 reporting for pre-disclosure infrastructure, web-shell paths, anomalous `GetUserName` activity, `.deb` web-shell filenames, and SHA-256 indicators.
+
+### Beazley Security Labs / GreyNoise / Lupovis
+
+**BSL-A1216: Citrix NetScaler zero-day prompts emergency shutdowns**
+
+https://labs.beazley.security/advisories/BSL-A1216
+
+The script uses Beazley Security Labs' consolidated public indicators for GreyNoise and Lupovis observations, including exploitation sources, DNS callback pivots, public PoC markers, and the GreyNoise `.ctxs.receiver` web-shell hash.
 
 ### LevelBlue Threat Hunt Operations & Research / SpiderLabs
 
@@ -156,12 +164,23 @@ The current script contains the following historical IPv4 indicators.
 66.227.183.84
 77.83.199.39
 104.28.215.137
+104.28.215.136
 104.248.244.66
 104.28.247.136
+104.28.247.137
 162.33.178.9
 193.149.176.207
 216.245.184.164
+78.47.24.217
+66.135.19.18
+167.99.111.203
+142.93.85.227
+104.248.74.206
+137.184.91.207
+139.180.152.138
 ```
+
+`104.28.215.136` and `104.28.247.137` are Cloudflare WARP egress addresses reported by Unit 42. Treat them as correlation pivots only, not as standalone blocklist entries.
 
 ### LevelBlue
 
@@ -179,14 +198,34 @@ The current script contains the following historical IPv4 indicators.
 64.94.85.67
 ```
 
+### Beazley / GreyNoise / Lupovis
+
+```text
+149.104.78.141
+138.28.234.38
+82.167.14.7
+85.203.46.191
+154.217.251.226
+```
+
 These are **historical hunting indicators**, not a complete or permanent blocklist. An IP hit needs surrounding context, and the absence of these IPs does not exclude exploitation.
 
 ## Built-in file and path indicators
 
 ```text
 /vpn/scripts/linux/nsgclient18.deb
+/vpn/scripts/linux/nsgser18.deb
 /vpn/scripts/linux/nsg64.deb
+/vpn/scripts/linux/nsgsupport.deb
+/vpn/scripts/linux/nsgpackage64.deb
+/vpn/scripts/linux/nsgbuild.deb
+/logon/LogonPoint/Authentication/GetUserName
 /var/netscaler/logon/LogonPoint/custom/.ctxs.receiver
+/var/netscaler/gui/vpn/scripts/linux/nsgclient.sig
+/var/netscaler/gui/vpn/scripts/linux/e6ee7c85.sig
+/netscaler/ns_gui/vpn/scripts/linux/nsgclient.sig
+/netscaler/ns_gui/vpn/scripts/linux/e6ee7c85.sig
+/vpn/media/nsgclient.ico
 /var/netscaler/logon/LogonPoint/.local_journal
 /tmp/.uxdport
 /tmp/.uxdlock
@@ -216,6 +255,9 @@ e9fe43968c6c0955300e3bc4d7fb0b05a18570b4733aaf4f5c6f7f09be5a242c
 
 974b69782fdf5d67b97cfd508465939e44ee10798dbcc1e82b92d78776bad938
   LevelBlue - update_c08937.pl
+
+6f5a2a452a7901323abd21879c6cecccb47c06aeeaccb1b467212f3b11e4b1e7
+  GreyNoise / Beazley - .ctxs.receiver web shell
 ```
 
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
@@ -228,6 +270,7 @@ Examples include:
 
 - DTLS handshake failures correlated with NSPPE termination
 - `pitboss PPE unexpectedly died`
+- `pitboss PPE missed too many heartbeats`
 - `NOT restarting NSPPE`
 - `orphan rings`
 - `${IFS}` in attacker-controlled command strings
@@ -237,9 +280,16 @@ Examples include:
 - `HTTP_NSC_LDAP`
 - `HTTP_NSC_CLIENTTYPE`
 - `HTTP_X_UX*`
+- `INDEX:` User-Agent payload staging
+- `ns-88771-poc`
+- `NX-CVE-OK`
+- `httpworkbench.com`
 - `NSC_TASS`
 - `CsrfToken`
+- `e826d7ddf3c85920`
+- `7489a0f93c67fa5cdaeb4b921d90594d`
 - suspicious activity involving `/vpn/media/` and `/vpn/scripts/`
+- suspicious activity involving `/nf/auth/doAuthentication.do` and `/logon/LogonPoint/Authentication/GetUserName`
 - `sec_monitor`
 - `customsnmpd`
 - SUID/SGID permissions on `/bin/sh`
@@ -557,6 +607,13 @@ Store and transmit reports according to your incident-response and evidence-hand
 Do not publish raw reports without reviewing and sanitizing them first.
 
 ## Version notes
+
+### 1.1 - 2026-10-02
+
+- Added Unit 42 September 30 indicators: additional pre-disclosure IPs, Cloudflare WARP correlation IPs, `.deb` web-shell filenames, `GetUserName` activity, `.sig` filenames, and related web paths.
+- Added Beazley/GreyNoise/Lupovis public indicators: exploitation/scanning IPs, `httpworkbench.com`, `NX-CVE-OK`, `ns-88771-poc`, and the GreyNoise `.ctxs.receiver` SHA-256.
+- Added web-shell/payload pivots for `INDEX:`, `e826d7ddf3c85920`, and `7489a0f93c67fa5cdaeb4b921d90594d`.
+- Bumped script version to 1.1.
 
 ### 1.0 - 2026-10-01
 

@@ -2,13 +2,19 @@
 # NetScaler CTX697096 Threat Hunt Helper
 # Defensive/read-only hunting for CVE-2026-88771 / CVE-2026-88772 activity and related post-exploitation.
 #
-# Sources used for indicators and hunt logic (verified 2026-10-01):
+# Sources used for indicators and hunt logic (verified 2026-10-02):
 #   - Citrix CTX697096 security bulletin:
 #     https://support.citrix.com/external/article/CTX697096
 #   - Google Threat Intelligence Group / Mandiant:
 #     https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
 #   - Palo Alto Networks Unit 42:
 #     https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
+#   - Beazley Security Labs BSL-A1216:
+#     https://labs.beazley.security/advisories/BSL-A1216
+#   - PitScaler public briefing / IOC compilation:
+#     https://pitscaler.com/
+#   - watchTowr Labs technical analysis:
+#     https://labs.watchtowr.com/
 #   - LevelBlue SpiderLabs:
 #     https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
 #   - Arctic Wolf Labs Pack Alert (observed post-exploitation indicators, secondary set):
@@ -31,7 +37,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.0"
+VERSION="1.1"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -66,11 +72,20 @@ IOC_IPS=(
   "66.227.183.84"      # Unit 42
   "77.83.199.39"       # Unit 42
   "104.28.215.137"     # Unit 42
+  "104.28.215.136"     # Unit 42 Cloudflare WARP correlation only
   "104.248.244.66"     # Unit 42
   "104.28.247.136"     # Unit 42
+  "104.28.247.137"     # Unit 42 Cloudflare WARP correlation only
   "162.33.178.9"       # Unit 42
   "193.149.176.207"    # Unit 42
   "216.245.184.164"    # Unit 42
+  "78.47.24.217"       # Unit 42 fingerprinting / webshell drop activity
+  "66.135.19.18"       # Unit 42 .deb webshell requests
+  "167.99.111.203"     # Unit 42 .deb webshell requests
+  "142.93.85.227"      # Unit 42 .deb webshell requests
+  "104.248.74.206"     # Unit 42 .deb webshell requests
+  "137.184.91.207"     # Unit 42 .deb webshell requests
+  "139.180.152.138"    # Unit 42 webshell drop activity / eSentire
   "70.172.58.168"      # LevelBlue exploitation source
   "45.141.21.130"       # LevelBlue reverse-shell C2
   "162.243.36.88"       # LevelBlue exploitation source
@@ -82,13 +97,28 @@ IOC_IPS=(
   "62.133.62.80"       # LevelBlue payload hosting
   "23.27.143.20"       # LevelBlue exploit source / Python payload host
   "64.94.85.67"        # LevelBlue exploit / payload / exfil infrastructure
+  "149.104.78.141"     # GreyNoise / Beazley exploitation source
+  "138.28.234.38"      # Lupovis / Beazley DNS exfil attempt
+  "82.167.14.7"        # Lupovis / Beazley exploitation check source
+  "85.203.46.191"      # Lupovis / Beazley reconnaissance source
+  "154.217.251.226"    # Lupovis / Beazley CVE-2026-88772 scanning
 )
 
 # Host/file indicators.
 IOC_PATHS=(
   "/vpn/scripts/linux/nsgclient18.deb"
+  "/vpn/scripts/linux/nsgser18.deb"
   "/vpn/scripts/linux/nsg64.deb"
+  "/vpn/scripts/linux/nsgsupport.deb"
+  "/vpn/scripts/linux/nsgpackage64.deb"
+  "/vpn/scripts/linux/nsgbuild.deb"
+  "/logon/LogonPoint/Authentication/GetUserName"
   "/var/netscaler/logon/LogonPoint/custom/.ctxs.receiver"
+  "/var/netscaler/gui/vpn/scripts/linux/nsgclient.sig"
+  "/var/netscaler/gui/vpn/scripts/linux/e6ee7c85.sig"
+  "/netscaler/ns_gui/vpn/scripts/linux/nsgclient.sig"
+  "/netscaler/ns_gui/vpn/scripts/linux/e6ee7c85.sig"
+  "/vpn/media/nsgclient.ico"
   "/var/netscaler/logon/LogonPoint/.local_journal"
   "/tmp/.uxdport"
   "/tmp/.uxdlock"
@@ -106,6 +136,7 @@ IOC_HASHES["1bd314b661396c7086f6367fbbb48025e03ca2de69c073d53a8b0a38aa5fbb7d"]="
 IOC_HASHES["79c65fa04541032e251fa4796b97800374b63c7982593dd1a2e0db605d429186"]="Unit42 decoded shell-script text"
 IOC_HASHES["e9fe43968c6c0955300e3bc4d7fb0b05a18570b4733aaf4f5c6f7f09be5a242c"]="LevelBlue main.py"
 IOC_HASHES["974b69782fdf5d67b97cfd508465939e44ee10798dbcc1e82b92d78776bad938"]="LevelBlue update_c08937.pl"
+IOC_HASHES["6f5a2a452a7901323abd21879c6cecccb47c06aeeaccb1b467212f3b11e4b1e7"]="GreyNoise .ctxs.receiver webshell"
 
 # Strings / behavior pivots. These are intentionally broader than exact IOCs.
 LOG_PATTERNS=(
@@ -116,11 +147,18 @@ LOG_PATTERNS=(
   "NSPPE.*exit"
   "orphan rings"
   "pitboss PPE unexpectedly died"
+  "pitboss PPE missed too many heartbeats"
   "HTTP_NSC_LDAP"
   "HTTP_NSC_CLIENTTYPE"
   "HTTP_X_UX"
+  "INDEX:"
+  "ns-88771-poc"
+  "NX-CVE-OK"
+  "httpworkbench\.com"
   "/vpn/media/"
   "/vpn/scripts/"
+  "/nf/auth/doAuthentication\.do"
+  "/logon/LogonPoint/Authentication/GetUserName"
   "GetUserName"
   "receiver.min.css"
   "LogonUISimple.html.style.min.css"
@@ -153,6 +191,8 @@ WEBSHELL_PATTERNS=(
   "HTTP_X_UX"
   "NSC_TASS"
   "CsrfToken"
+  "e826d7ddf3c85920"
+  "7489a0f93c67fa5cdaeb4b921d90594d"
 )
 
 emit_stream() {
