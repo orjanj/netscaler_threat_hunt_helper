@@ -44,7 +44,7 @@ Each run writes a final **Hunt summary** to the terminal and, when report writin
 
 ## Intelligence scope and verification date
 
-The indicator set and hunting logic in version **1.1** were reviewed against public reporting available on **2026-10-02**.
+The indicator set and hunting logic in version **1.2** were reviewed against public reporting available on **2026-10-02**.
 
 The campaign is evolving. IP addresses, payload names, hashes, web-shell paths, and techniques can change quickly. Always compare this repository with the latest Citrix advisory and current incident-response reporting before treating the built-in IOC set as complete.
 
@@ -87,7 +87,7 @@ The script uses GTIG/Mandiant observations for, among other things:
 
 https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
 
-The script uses Unit 42 reporting for pre-disclosure infrastructure, web-shell paths, anomalous `GetUserName` activity, `.deb` web-shell filenames, and SHA-256 indicators.
+The script uses Unit 42 reporting for pre-disclosure infrastructure, web-shell paths, anomalous `GetUserName` activity, `.deb` web-shell filenames, SHA-256 indicators, fingerprinting URLs, log-poisoning pivots, Apache alias pivots, and web-shell command behavior.
 
 ### Beazley Security Labs / GreyNoise / Lupovis
 
@@ -271,12 +271,15 @@ Examples include:
 - DTLS handshake failures correlated with NSPPE termination
 - `pitboss PPE unexpectedly died`
 - `pitboss PPE missed too many heartbeats`
+- `pitboss PPE unexpectedly died NSPPE`
+- `pitboss PPE missed too many heartbeats NSPPE`
 - `NOT restarting NSPPE`
 - `orphan rings`
 - `${IFS}` in attacker-controlled command strings
 - unexpected PHP execution for `.deb`, `.sig`, `.tgz`, `.rpm`, or other non-PHP resources
 - suspicious `AddHandler`, `AddType`, `AliasMatch`, and `php_flag` directives
-- web-shell functions such as `eval()`, `passthru()`, `shell_exec()`, and `base64_decode()`
+- web-shell functions such as `eval()`, `passthru()`, `shell_exec()`, `exec()`, `system()`, `popen()`, and `base64_decode()`
+- `wc -c <` web-shell file-size command behavior
 - `HTTP_NSC_LDAP`
 - `HTTP_NSC_CLIENTTYPE`
 - `HTTP_X_UX*`
@@ -288,6 +291,14 @@ Examples include:
 - `CsrfToken`
 - `e826d7ddf3c85920`
 - `7489a0f93c67fa5cdaeb4b921d90594d`
+- `Rhfajaf1H992`
+- `/admin_ui/common/css/ns/ui.css`
+- `/vpn/js/rdx/core/lang/rdx_en.json.gz`
+- `receiver.min.<hex>.css`
+- `ns_monuploadd_err.pl`
+- `/var/netscaler/.ns_suidcmd`
+- `chmod 6555 /bin/sh`
+- `/var/run/httpd.pid`
 - suspicious activity involving `/vpn/media/` and `/vpn/scripts/`
 - suspicious activity involving `/nf/auth/doAuthentication.do` and `/logon/LogonPoint/Authentication/GetUserName`
 - `sec_monitor`
@@ -607,6 +618,13 @@ Store and transmit reports according to your incident-response and evidence-hand
 Do not publish raw reports without reviewing and sanitizing them first.
 
 ## Version notes
+
+### 1.2 - 2026-10-02
+
+- Added Unit 42 analysis pivots for fingerprinting URLs: `/admin_ui/common/css/ns/ui.css` and `/vpn/js/rdx/core/lang/rdx_en.json.gz`.
+- Added Unit 42 CVE-2026-88771 log-poisoning and execution pivots: `pitboss PPE unexpectedly died NSPPE`, `pitboss PPE missed too many heartbeats NSPPE`, `ns_monuploadd_err.pl`, `chmod 6555 /bin/sh`, `/var/netscaler/.ns_suidcmd`, and `/var/run/httpd.pid`.
+- Added Unit 42 web-shell pivots for `receiver.min.<hex>.css`, `Rhfajaf1H992`, `exec()`, `system()`, `popen()`, and `wc -c <` behavior.
+- Bumped script version to 1.2.
 
 ### 1.1 - 2026-10-02
 

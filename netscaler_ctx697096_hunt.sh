@@ -37,7 +37,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.1"
+VERSION="1.2"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -147,7 +147,9 @@ LOG_PATTERNS=(
   "NSPPE.*exit"
   "orphan rings"
   "pitboss PPE unexpectedly died"
+  "pitboss PPE unexpectedly died NSPPE"
   "pitboss PPE missed too many heartbeats"
+  "pitboss PPE missed too many heartbeats[[:space:]]?NSPPE"
   "HTTP_NSC_LDAP"
   "HTTP_NSC_CLIENTTYPE"
   "HTTP_X_UX"
@@ -155,16 +157,23 @@ LOG_PATTERNS=(
   "ns-88771-poc"
   "NX-CVE-OK"
   "httpworkbench\.com"
+  "/admin_ui/common/css/ns/ui\.css"
+  "/vpn/js/rdx/core/lang/rdx_en\.json\.gz"
   "/vpn/media/"
   "/vpn/scripts/"
   "/nf/auth/doAuthentication\.do"
   "/logon/LogonPoint/Authentication/GetUserName"
   "GetUserName"
   "receiver.min.css"
+  "receiver\.min\.[[:xdigit:]]+\.css"
   "LogonUISimple.html.style.min.css"
   "sec_monitor"
   '\$\{IFS\}'
   "customsnmpd"
+  "ns_monuploadd_err\.pl"
+  "/var/netscaler/\.ns_suidcmd"
+  "chmod[[:space:]]+6555[[:space:]]+/bin/sh"
+  "/var/run/httpd\.pid"
   "update_result_3567cs.tgz"
   "\.ctxs\.receiver"
   "\.local_journal"
@@ -184,8 +193,12 @@ WEBSHELL_PATTERNS=(
   "<\\?php"
   "base64_decode[[:space:]]*\\("
   "shell_exec[[:space:]]*\\("
+  "exec[[:space:]]*\\("
   "passthru[[:space:]]*\\("
+  "system[[:space:]]*\\("
+  "popen[[:space:]]*\\("
   "eval[[:space:]]*\\("
+  "wc[[:space:]]+-c[[:space:]]*<"
   "HTTP_NSC_LDAP"
   "HTTP_NSC_CLIENTTYPE"
   "HTTP_X_UX"
@@ -193,6 +206,7 @@ WEBSHELL_PATTERNS=(
   "CsrfToken"
   "e826d7ddf3c85920"
   "7489a0f93c67fa5cdaeb4b921d90594d"
+  "Rhfajaf1H992"
 )
 
 emit_stream() {
@@ -628,8 +642,8 @@ live_web_config() {
   for f in /etc/httpd.conf /nsconfig/httpd.conf /flash/nsconfig/httpd.conf; do
     [[ -r "$f" ]] || continue
     log INFO "Checking $f"
-    grep -Ein 'application/x-httpd-php|php_flag|AliasMatch|AddHandler|AddType|\.deb|\.sig|\.tgz|\.rpm|receiver\.min|LogonUISimple\.html\.style' "$f" 2>/dev/null | emit_stream || true
-    if grep -Eiq 'application/x-httpd-php.*\.(deb|sig|tgz|rpm)|AliasMatch.*(/vpn/media|/vpn/theme|/vpn/images)|receiver\.min|LogonUISimple\.html\.style' "$f" 2>/dev/null; then
+    grep -Ein 'application/x-httpd-php|php_flag|AliasMatch|AddHandler|AddType|\.deb|\.sig|\.tgz|\.rpm|receiver\.min|\.ctxs\.receiver|LogonUISimple\.html\.style' "$f" 2>/dev/null | emit_stream || true
+    if grep -Eiq 'application/x-httpd-php.*\.(deb|sig|tgz|rpm)|AliasMatch.*(/vpn/media|/vpn/theme|/vpn/images)|receiver\.min|\.ctxs\.receiver|LogonUISimple\.html\.style' "$f" 2>/dev/null; then
       log ALERT "Suspicious web server configuration in $f."
       found=1
     fi
@@ -654,7 +668,7 @@ live_http_logs() {
   local f
   for f in /var/log/httpaccess.log /var/log/httpaccess.log.* /var/log/httpaccess-vpn.log /var/log/httpaccess-vpn.log.* /var/log/httperror*; do
     [[ -r "$f" ]] || continue
-    grep -Ein '/vpn/(media|scripts|theme)/|GetUserName|nsgclient|nsginstaller|\.deb|\.sig|receiver\.min|LogonUISimple\.html\.style|HTTP_NSC_|HTTP_X_UX' "$f" 2>/dev/null | tail -n 300 | emit_stream || true
+    grep -Ein '/admin_ui/common/css/ns/ui\.css|/vpn/js/rdx/core/lang/rdx_en\.json\.gz|/vpn/(media|scripts|theme)/|GetUserName|nsgclient|nsginstaller|\.deb|\.sig|receiver\.min|LogonUISimple\.html\.style|HTTP_NSC_|HTTP_X_UX' "$f" 2>/dev/null | tail -n 300 | emit_stream || true
   done
   log INFO "Investigate 404 responses with large bodies/long processing times and chronological gaps in access logs."
 }
