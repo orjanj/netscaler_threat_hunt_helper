@@ -1,5 +1,29 @@
 # NetScaler CTX697096 Threat Hunt Helper
 
+## Table of contents
+
+- [Files](#files)
+- [Intelligence scope and verification date](#intelligence-scope-and-verification-date)
+- [Primary sources](#primary-sources)
+- [Built-in network indicators](#built-in-network-indicators)
+- [Built-in file and path indicators](#built-in-file-and-path-indicators)
+- [Built-in SHA-256 indicators](#built-in-sha-256-indicators)
+- [Behavioral hunting pivots](#behavioral-hunting-pivots)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Interactive mode](#interactive-mode)
+- [Offline mode](#offline-mode)
+- [Live mode](#live-mode)
+- [Show the built-in IOC set](#show-the-built-in-ioc-set)
+- [How the script works](#how-the-script-works)
+- [Interpreting output](#interpreting-output)
+- [Recommended investigation workflow](#recommended-investigation-workflow)
+- [What this script does not do](#what-this-script-does-not-do)
+- [False positives and false negatives](#false-positives-and-false-negatives)
+- [Report handling](#report-handling)
+- [Version notes](#version-notes)
+- [Disclaimer](#disclaimer)
+
 A defensive Bash utility for hunting indicators and post-exploitation artifacts associated with **Citrix NetScaler ADC / NetScaler Gateway CTX697096**, with primary focus on observed exploitation of **CVE-2026-88771** and **CVE-2026-88772**.
 
 The script can be used in two ways:
@@ -10,6 +34,8 @@ The script can be used in two ways:
 Each run writes a final **Hunt summary** to the terminal and, when report writing is enabled, to the report log. The summary includes how many sections ran, how many `ALERT`, `WARN`, and `ERROR` messages were logged, concrete bullet-list details for those messages when present, and a short assessment reminder. Text-search findings include the hunt section, file path, line number, and matching line. Very large detail lists are capped in the summary. When concrete finding details exceed the findings threshold, interactive runs prompt to write a separate findings file containing the full grouped detail list.
 
 > **Important:** This is a threat-hunting helper, not a compromise verdict engine. A match is a lead that needs investigation. No matches do not prove that an appliance is clean.
+
+> **Live testing status:** Live mode has not yet been validated on a live NetScaler appliance. Prefer offline mode for first use, and test live mode in a controlled maintenance window before relying on it operationally.
 
 ## Files
 
@@ -243,6 +269,8 @@ The script uses Bash associative arrays and namerefs, so a POSIX `/bin/sh` inter
 ### Live mode
 
 Live mode must be executed in an environment that provides a compatible Bash runtime and sufficient permissions to read the relevant NetScaler files and process/network state.
+
+Live mode has not yet been validated on a live NetScaler appliance. Treat the live checks as best-effort read-only hunting logic until they have been tested against the target appliance version and shell environment.
 
 A NetScaler appliance may not provide Bash in the same way as a general-purpose Linux host. If Bash is not available or if evidence preservation matters, collect a support bundle / forensic copy and use **offline mode** from a separate analysis host instead.
 

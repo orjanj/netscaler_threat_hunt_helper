@@ -26,6 +26,11 @@
 set -u
 set -o pipefail
 
+if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) )); then
+  printf 'ERROR: %s requires Bash 4.3 or later. FreeBSD/NetScaler systems may need bash from packages/ports or offline hunting from another host.\n' "${0##*/}" >&2
+  exit 2
+fi
+
 VERSION="1.0"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
@@ -270,24 +275,24 @@ write_findings_file() {
 maybe_write_findings_file() {
   local total
   total=$(findings_detail_count)
-  (( total > FINDINGS_DETAIL_THRESHOLD )) || return
-  (( FINDINGS_WRITTEN == 0 )) || return
+  (( total > FINDINGS_DETAIL_THRESHOLD )) || return 0
+  (( FINDINGS_WRITTEN == 0 )) || return 0
 
   local answer=""
   local auto_mode="${NETSCALER_HUNT_FINDINGS_AUTO:-prompt}"
   if [[ "$auto_mode" == "0" ]]; then
     printf '\nFindings file: not created because NETSCALER_HUNT_FINDINGS_AUTO=0.\n' | emit_stream
-    return
+    return 0
   elif [[ "$auto_mode" != "1" && -t 0 ]]; then
     printf '\n%s concrete finding details were collected. Write full findings to %s? [Y/n]: ' "$total" "$FINDINGS_FILE" > /dev/tty
     read -r answer < /dev/tty
     if [[ -n "$answer" && ! "$answer" =~ ^[Yy]$ ]]; then
       printf '\nFindings file: not created by operator choice.\n' | emit_stream
-      return
+      return 0
     fi
   elif [[ "$auto_mode" != "1" && "$NO_REPORT" == "1" ]]; then
     printf '\nFindings file: not created because non-interactive no-report mode is enabled. Set NETSCALER_HUNT_FINDINGS_FILE and run interactively to approve it.\n' | emit_stream
-    return
+    return 0
   fi
 
   if write_findings_file; then
@@ -296,6 +301,7 @@ maybe_write_findings_file() {
   else
     printf '\nFindings file: failed to write %s\n' "$FINDINGS_FILE" | emit_stream
   fi
+  return 0
 }
 
 print_summary_items() {
@@ -453,6 +459,31 @@ hash_file() {
   fi
 }
 
+list_recent_files() {
+  local d="$1"
+  find "$d" -type f -mtime -45 -print 2>/dev/null | head -n 200 | while IFS= read -r f; do
+    ls -ld "$f" 2>/dev/null
+  done
+}
+
+list_processes() {
+  if ps axww -o user,pid,ppid,stat,command >/dev/null 2>&1; then
+    ps axww -o user,pid,ppid,stat,command 2>/dev/null
+  else
+    ps auxww 2>/dev/null
+  fi
+}
+
+list_ipv4_network() {
+  if have sockstat; then
+    sockstat -4 2>/dev/null
+  elif have netstat; then
+    netstat -an -f inet 2>/dev/null || netstat -ant 2>/dev/null || netstat -an 2>/dev/null
+  else
+    return 1
+  fi
+}
+
 hunt_hashes_offline() {
   local prompt_mode="${1:-prompt}"
   section "SHA-256 IOC search"
@@ -545,8 +576,8 @@ live_artifacts() {
 
   for d in /var/netscaler/gui/vpn/scripts/linux /netscaler/ns_gui/vpn/scripts/linux /var/netscaler/logon/LogonPoint/custom /var/netscaler/logon/LogonPoint; do
     if [[ -d "$d" ]]; then
-      log INFO "Listing recently modified files in $d (last 45 days, if find supports -mtime)."
-      find "$d" -type f -mtime -45 -ls 2>/dev/null | head -n 200 | emit_stream || true
+      log INFO "Listing recently modified files in $d (last 45 days)."
+      list_recent_files "$d" | emit_stream || true
     fi
   done
 }
@@ -604,7 +635,7 @@ live_shell_permissions() {
 
 live_processes() {
   section "LIVE: processes and IPC artifacts"
-  ps auxww 2>/dev/null | grep -Ei 'python.*(uxdport|uxdlock|base64)|nohup|nsmon|update_c08937|main\.py|customsnmpd|\.local_journal|nsg(client|installer)' | grep -v grep | emit_stream || true
+  list_processes | grep -Ei 'python.*(uxdport|uxdlock|base64)|nohup|nsmon|update_c08937|main\.py|customsnmpd|\.local_journal|nsg(client|installer)' | grep -v grep | emit_stream || true
   for p in /tmp/.uxdport /tmp/.uxdlock /var/tmp/.nsmon; do
     if [[ -e "$p" ]]; then
       log ALERT "Found IPC/persistence artifact: $p"
@@ -640,11 +671,11 @@ live_network() {
   section "LIVE: listeners and connections"
   if have sockstat; then
     log INFO "sockstat output (IPv4):"
-    sockstat -4 2>/dev/null | emit_stream || true
+    list_ipv4_network | emit_stream || true
     log INFO "Listeners on 41000-41999 (Arctic Wolf nsmon observation):"
     sockstat -4 -l 2>/dev/null | grep -E ':(41[0-9]{3})([[:space:]]|$)' | emit_stream || true
   elif have netstat; then
-    netstat -an 2>/dev/null | emit_stream || true
+    list_ipv4_network | emit_stream || true
   else
     log WARN "Neither sockstat nor netstat is available."
   fi
@@ -656,11 +687,7 @@ live_network() {
   done
 
   local conn_hits=""
-  if have sockstat; then
-    conn_hits=$(sockstat -4 2>/dev/null | grep -E "$regex" || true)
-  elif have netstat; then
-    conn_hits=$(netstat -an 2>/dev/null | grep -E "$regex" || true)
-  fi
+  conn_hits=$(list_ipv4_network 2>/dev/null | grep -E "$regex" || true)
   if [[ -n "$conn_hits" ]]; then
     printf '%s\n' "$conn_hits" | emit_stream
     log ALERT "Active connection matches a historical IOC IP."
