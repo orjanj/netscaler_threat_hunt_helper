@@ -17,7 +17,6 @@
   - [SHA-256 indicators](#sha-256-indicators)
   - [Behavioral hunting pivots](#behavioral-hunting-pivots)
 - [Primary sources](#primary-sources)
-- [Version notes](#version-notes)
 
 A defensive Bash utility for hunting indicators and post-exploitation artifacts associated with **Citrix NetScaler ADC / NetScaler Gateway CTX697096**, with primary focus on observed exploitation of **CVE-2026-88771** and **CVE-2026-88772**.
 
@@ -79,7 +78,7 @@ This is a threat-hunting helper, not a compromise verdict engine.
 - The script does not patch, delete files, kill processes, restart services, reboot, modify NetScaler configuration, exploit vulnerabilities, validate vulnerabilities by sending malicious traffic, or automatically declare a device compromised or clean.
 - The tool does not inspect memory/core dumps, automatically unpack every support-bundle/archive format, replace NetScaler Console IOC scanning, or replace a forensic or incident-response engagement.
 
-The indicator set and hunting logic in version **1.2** were reviewed against public reporting available on **2026-10-02**. The campaign is evolving; always compare this repository with the latest Citrix advisory and current incident-response reporting before treating the built-in IOC set as complete.
+The indicator set and hunting logic in version **1.3** were reviewed against public reporting available on **2026-10-03**. The campaign is evolving; always compare this repository with the latest Citrix advisory and current incident-response reporting before treating the built-in IOC set as complete.
 
 ## Requirements
 
@@ -212,17 +211,18 @@ The interactive live menu lets you select individual checks:
 
 ```text
 1) Known file artifacts and staging paths
-2) Apache/PHP/httpd.conf persistence
-3) DTLS / NSPPE / pitboss log findings
-4) HTTP access/error log findings
-5) /bin/sh SUID/SGID check
-6) Processes + WHIPSHOT/SLAPSHOT IPC
-7) Cron persistence (.nsmon etc.)
-8) Privileged account / ns.conf (sec_monitor etc.)
-9) Listeners/active connections + IOC IPs
-10) IOC IPs in local logs
-11) SHA-256 checks on high-risk paths
-12) Show IOC list
+2) SAML / second-wave pivots
+3) Apache/PHP/httpd.conf persistence
+4) DTLS / NSPPE / pitboss log findings
+5) HTTP access/error log findings
+6) /bin/sh SUID/SGID check
+7) Processes + WHIPSHOT/SLAPSHOT IPC
+8) Cron persistence (.nsmon etc.)
+9) Privileged account / ns.conf (sec_monitor etc.)
+10) Listeners/active connections + IOC IPs/domains
+11) IOC IPs/domains in local logs
+12) SHA-256 checks on high-risk paths
+13) Show IOC list
 ```
 
 The live checks do **not** patch, remove files, terminate processes, restart services, reboot the appliance, or modify NetScaler configuration.
@@ -366,14 +366,15 @@ Do not publish raw reports without reviewing and sanitizing them first.
 
 ## Coverage summary
 
-The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-02**.
+The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-03**.
 
-- Citrix / NetScaler: affected product context, vulnerability preconditions, and remediation guidance.
+- Citrix / NetScaler: affected product context, vulnerability preconditions, SAML applicability checks, and remediation guidance.
 - GTIG / Mandiant: DTLS/NSPPE log pivots, Apache/PHP manipulation, WHIPSHOT/SLAPSHOT-related pivots, SUID/SGID checks, suspicious VPN paths, and network indicators.
 - Palo Alto Networks Unit 42: pre-disclosure infrastructure, web-shell paths, anomalous `GetUserName` activity, `.deb` web-shell filenames, SHA-256 indicators, fingerprinting URLs, log-poisoning pivots, Apache alias pivots, and web-shell command behavior.
-- Beazley Security Labs / GreyNoise / Lupovis: exploitation/scanning IPs, DNS callback pivots, public PoC markers, and the GreyNoise `.ctxs.receiver` web-shell hash.
+- Beazley Security Labs / GreyNoise / Lupovis: exploitation/scanning IPs, DNS callback pivots, public PoC markers, second-wave SAML/log-injection delivery and callback pivots, Sliver payload hashes, and the GreyNoise `.ctxs.receiver` web-shell hash.
 - LevelBlue / SpiderLabs: CVE-2026-88771 authentication/log-poisoning pivots, `sec_monitor`, staging artifacts, payload hashes, command-obfuscation pivots, and reverse-shell/payload/exfiltration infrastructure.
 - Arctic Wolf Labs: secondary hunting set for `/var/1.py`, `/var/tmp/.nsmon`, `nsmon.pl`, cron persistence, high-port listeners, and payload retrieval/execution behavior.
+- PitScaler: public IOC compilation and October 2/3 SAML issue context, including contested `pyrlnk.cc` / `pylrk.cc` spellings and nsaaad crash pivots.
 
 ## Indicator reference
 
@@ -439,6 +440,22 @@ The current script contains the following historical IPv4 indicators.
 82.167.14.7
 85.203.46.191
 154.217.251.226
+213.209.159.55
+51.158.203.95
+185.244.213.112
+158.94.211.205
+```
+
+### Domain indicators
+
+```text
+httpworkbench.com
+webhook.site
+dnshook.site
+pyrlnk.cc
+www.pyrlnk.cc
+pylrk.cc
+f.pylrk.cc
 ```
 
 ### File and path indicators
@@ -465,6 +482,15 @@ The current script contains the following historical IPv4 indicators.
 /var/netscaler/logon/LogonPoint/xua.html
 /var/tmp/.nsmon
 /var/1.py
+/v
+/nsconfig/.slap
+/flash/nsconfig/.slap
+/var/tmp/.ux
+/var/tmp/.slap-agent.log
+/var/tmp/.slap-httpd-test.log
+/var/tmp/.slap-diag.txt
+/var/tmp/.s2loot
+/tmp/.slap.cron
 ```
 
 Some of these may be short-lived because observed payloads included cleanup behavior. Missing files therefore do not prove that execution did not occur.
@@ -489,6 +515,18 @@ e9fe43968c6c0955300e3bc4d7fb0b05a18570b4733aaf4f5c6f7f09be5a242c
 
 6f5a2a452a7901323abd21879c6cecccb47c06aeeaccb1b467212f3b11e4b1e7
   GreyNoise / Beazley - .ctxs.receiver web shell
+
+c2f5532f3209dce0bd30ead47a2616a74ce8170324ef68dfd59acac3f5f1da34
+  Beazley - Sliver download script
+
+0188b0eba4b01c4fb838df9d1d76c76d7f1dc22897e25161975b606c134c1027
+  Beazley / PitScaler - Sliver C2 implant
+
+b9b0a4380db462c706597bd3e6a08d4d99fcbbf0919d63eb99b488d396c8ce63
+  PitScaler - second-wave Perl payload
+
+72cff13fcba75504485e94fa6bfc5e9363e860f49efdba68feb583148eec38f2
+  Poppelgaard / PitScaler - SAML-attack kit dropper
 ```
 
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
@@ -518,6 +556,12 @@ Examples include:
 - `ns-88771-poc`
 - `NX-CVE-OK`
 - `httpworkbench.com`
+- `webhook.site`
+- `dnshook.site`
+- `pyrlnk.cc`
+- `pylrk.cc`
+- `213.209.159.55:443/t/`
+- `158.94.211.205:8080`
 - `NSC_TASS`
 - `CsrfToken`
 - `e826d7ddf3c85920`
@@ -537,6 +581,9 @@ Examples include:
 - SUID/SGID permissions on `/bin/sh`
 - cron references to `.nsmon`, `curl`, `wget`, Python, Perl, or known staging paths
 - unexpected listeners in TCP/UDP port range `41000-41999`
+- SAML configuration lines `add authentication samlAction` or `add authentication samlIdPProfile`
+- nsaaad crash/restart lines such as `proc nsaaad`, `maximum number of restarts`, and `All monitored processes have exited, rebooting`
+- second-wave fetch/callback pivots involving `/v`, `f.pylrk.cc`, `webhook.site`, and `dnshook.site`
 
 ## Primary sources
 
@@ -585,7 +632,23 @@ The script uses Unit 42 reporting for pre-disclosure infrastructure, web-shell p
 
 https://labs.beazley.security/advisories/BSL-A1216
 
-The script uses Beazley Security Labs' consolidated public indicators for GreyNoise and Lupovis observations, including exploitation sources, DNS callback pivots, public PoC markers, and the GreyNoise `.ctxs.receiver` web-shell hash.
+The script uses Beazley Security Labs' consolidated public indicators for GreyNoise and Lupovis observations, including exploitation sources, DNS callback pivots, public PoC markers, second-wave SAML/log-injection delivery and callback pivots, Sliver payload hashes, and the GreyNoise `.ctxs.receiver` web-shell hash.
+
+### PitScaler
+
+**PitScaler - Citrix NetScaler Zero-Day Crisis**
+
+https://pitscaler.com/
+
+The script uses PitScaler as a public IOC cross-reference and for October 2/3 SAML issue context, including `213.209.159.55`, `/v`, `/t/`, nsaaad crash pivots, and the `pyrlnk.cc` / `pylrk.cc` spelling conflict.
+
+### Citrix SAML guidance
+
+**Security Update: Guidance for NetScaler SAML Authentication Deployments**
+
+https://community.citrix.com/techzone-blogs/110_security-updates/security-update-guidance-for-netscaler-saml-authentication-deployments/
+
+The script uses Citrix's SAML applicability checks for `add authentication samlAction` and `add authentication samlIdPProfile`.
 
 ### LevelBlue Threat Hunt Operations & Research / SpiderLabs
 
@@ -636,29 +699,6 @@ NetScaler Console IOC documentation:
 
 https://docs.netscaler.com/en-us/netscaler-console-service/instance-advisory/ioc.html
 
-## Version notes
+## Changelog
 
-### 1.2 - 2026-10-02
-
-- Added Unit 42 analysis pivots for fingerprinting URLs: `/admin_ui/common/css/ns/ui.css` and `/vpn/js/rdx/core/lang/rdx_en.json.gz`.
-- Added Unit 42 CVE-2026-88771 log-poisoning and execution pivots: `pitboss PPE unexpectedly died NSPPE`, `pitboss PPE missed too many heartbeats NSPPE`, `ns_monuploadd_err.pl`, `chmod 6555 /bin/sh`, `/var/netscaler/.ns_suidcmd`, and `/var/run/httpd.pid`.
-- Added Unit 42 web-shell pivots for `receiver.min.<hex>.css`, `Rhfajaf1H992`, `exec()`, `system()`, `popen()`, and `wc -c <` behavior.
-- Bumped script version to 1.2.
-
-### 1.1 - 2026-10-02
-
-- Added Unit 42 September 30 indicators: additional pre-disclosure IPs, Cloudflare WARP correlation IPs, `.deb` web-shell filenames, `GetUserName` activity, `.sig` filenames, and related web paths.
-- Added Beazley/GreyNoise/Lupovis public indicators: exploitation/scanning IPs, `httpworkbench.com`, `NX-CVE-OK`, `ns-88771-poc`, and the GreyNoise `.ctxs.receiver` SHA-256.
-- Added web-shell/payload pivots for `INDEX:`, `e826d7ddf3c85920`, and `7489a0f93c67fa5cdaeb4b921d90594d`.
-- Bumped script version to 1.1.
-
-### 1.0 - 2026-10-01
-
-- Converted all user-facing script text to English.
-- Added complete LevelBlue IPv4 set used by the current hunt logic.
-- Added `45.141.21.130` reverse-shell C2 hunting.
-- Added `${IFS}` and `customsnmpd` behavioral pivots.
-- Added `NETSCALER_HUNT_NO_REPORT=1` for report-file suppression.
-- Added `NETSCALER_HUNT_REPORT` for choosing a report path.
-- Clarified that live checks are non-remediating but a report file is written by default.
-- Added documentation and source provenance.
+See [CHANGELOG.md](CHANGELOG.md) for version history.

@@ -2,7 +2,7 @@
 # NetScaler CTX697096 Threat Hunt Helper
 # Defensive/read-only hunting for CVE-2026-88771 / CVE-2026-88772 activity and related post-exploitation.
 #
-# Sources used for indicators and hunt logic (verified 2026-10-02):
+# Sources used for indicators and hunt logic (verified 2026-10-03):
 #   - Citrix CTX697096 security bulletin:
 #     https://support.citrix.com/external/article/CTX697096
 #   - Google Threat Intelligence Group / Mandiant:
@@ -37,7 +37,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.2"
+VERSION="1.3"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -102,6 +102,20 @@ IOC_IPS=(
   "82.167.14.7"        # Lupovis / Beazley exploitation check source
   "85.203.46.191"      # Lupovis / Beazley reconnaissance source
   "154.217.251.226"    # Lupovis / Beazley CVE-2026-88772 scanning
+  "213.209.159.55"     # Beazley / PitScaler second-wave SAML/log-injection payload delivery
+  "51.158.203.95"      # Beazley exploit delivery
+  "185.244.213.112"    # Beazley exploit delivery
+  "158.94.211.205"     # Beazley exfil receiver
+)
+
+IOC_DOMAINS=(
+  "httpworkbench.com"  # Lupovis / Beazley out-of-band callback service
+  "webhook.site"       # Beazley observed callback service
+  "dnshook.site"       # Beazley observed DNS callback service
+  "pyrlnk.cc"          # Beazley/PitScaler reported second-wave payload delivery spelling
+  "www.pyrlnk.cc"      # Beazley hardcoded Sliver C2
+  "pylrk.cc"           # Beazley/Poppelgaard reported second-wave payload delivery spelling
+  "f.pylrk.cc"         # Beazley Sliver payload delivery
 )
 
 # Host/file indicators.
@@ -127,6 +141,15 @@ IOC_PATHS=(
   "/var/netscaler/logon/LogonPoint/xua.html"
   "/var/tmp/.nsmon"
   "/var/1.py"
+  "/v"
+  "/nsconfig/.slap"
+  "/flash/nsconfig/.slap"
+  "/var/tmp/.ux"
+  "/var/tmp/.slap-agent.log"
+  "/var/tmp/.slap-httpd-test.log"
+  "/var/tmp/.slap-diag.txt"
+  "/var/tmp/.s2loot"
+  "/tmp/.slap.cron"
 )
 
 # Known hashes from Unit 42 / LevelBlue.
@@ -137,6 +160,10 @@ IOC_HASHES["79c65fa04541032e251fa4796b97800374b63c7982593dd1a2e0db605d429186"]="
 IOC_HASHES["e9fe43968c6c0955300e3bc4d7fb0b05a18570b4733aaf4f5c6f7f09be5a242c"]="LevelBlue main.py"
 IOC_HASHES["974b69782fdf5d67b97cfd508465939e44ee10798dbcc1e82b92d78776bad938"]="LevelBlue update_c08937.pl"
 IOC_HASHES["6f5a2a452a7901323abd21879c6cecccb47c06aeeaccb1b467212f3b11e4b1e7"]="GreyNoise .ctxs.receiver webshell"
+IOC_HASHES["c2f5532f3209dce0bd30ead47a2616a74ce8170324ef68dfd59acac3f5f1da34"]="Beazley Sliver download script"
+IOC_HASHES["0188b0eba4b01c4fb838df9d1d76c76d7f1dc22897e25161975b606c134c1027"]="Beazley/PitScaler Sliver C2 implant"
+IOC_HASHES["b9b0a4380db462c706597bd3e6a08d4d99fcbbf0919d63eb99b488d396c8ce63"]="PitScaler second-wave Perl payload"
+IOC_HASHES["72cff13fcba75504485e94fa6bfc5e9363e860f49efdba68feb583148eec38f2"]="Poppelgaard SAML-attack kit dropper"
 
 # Strings / behavior pivots. These are intentionally broader than exact IOCs.
 LOG_PATTERNS=(
@@ -157,6 +184,12 @@ LOG_PATTERNS=(
   "ns-88771-poc"
   "NX-CVE-OK"
   "httpworkbench\.com"
+  "webhook\.site"
+  "dnshook\.site"
+  "pyrlnk\.cc"
+  "pylrk\.cc"
+  "213\.209\.159\.55:443/t/"
+  "158\.94\.211\.205:8080"
   "/admin_ui/common/css/ns/ui\.css"
   "/vpn/js/rdx/core/lang/rdx_en\.json\.gz"
   "/vpn/media/"
@@ -182,6 +215,20 @@ LOG_PATTERNS=(
   "nsmon.pl"
   "/var/tmp/\.nsmon"
   "/var/1.py"
+  "fetch\$\{IFS\}-qo\$\{IFS\}/v"
+  "fetch\$\{IFS\}-qo-\$\{IFS\}https://f\.pylrk\.cc"
+  "nohup\$\{IFS\}fetch"
+  "nslookup[[:space:]]+PWNED\..*\.dnshook\.site"
+  "id>/netscaler/ns_gui/vpn/id009\.txt"
+  "id>/netscaler/ns_gui/vpn/rce\.txt"
+  "add authentication samlAction"
+  "add authentication samlIdPProfile"
+  "proc nsaaad.*(SIGNALED|EXITED)"
+  "maximum number of restarts"
+  "Pitboss declaring system failure"
+  "All monitored processes have exited, rebooting"
+  "nsaaad-.*\.gz"
+  "Pylrkfbsd"
 )
 
 WEBSHELL_PATTERNS=(
@@ -207,6 +254,11 @@ WEBSHELL_PATTERNS=(
   "e826d7ddf3c85920"
   "7489a0f93c67fa5cdaeb4b921d90594d"
   "Rhfajaf1H992"
+  "\.slap\.receiver"
+  "receiver\.deb"
+  "receiver\.v2\.min"
+  "httpd\.conf\.slap\.bak"
+  "Pylrkfbsd"
 )
 
 emit_stream() {
@@ -465,6 +517,20 @@ build_regex_from_array() {
   printf '%s' "$out"
 }
 
+build_network_ioc_regex() {
+  local regex="" item escaped
+  for item in "${IOC_IPS[@]}"; do
+    [[ -n "$regex" ]] && regex+="|"
+    regex+="${item//./\.}"
+  done
+  for item in "${IOC_DOMAINS[@]}"; do
+    escaped="${item//./\.}"
+    [[ -n "$regex" ]] && regex+="|"
+    regex+="$escaped"
+  done
+  printf '%s' "$regex"
+}
+
 hunt_log_behavior_offline() {
   local regex
   regex=$(build_regex_from_array LOG_PATTERNS)
@@ -472,12 +538,8 @@ hunt_log_behavior_offline() {
 }
 
 hunt_ip_iocs_offline() {
-  local regex=""
-  local ip
-  for ip in "${IOC_IPS[@]}"; do
-    [[ -n "$regex" ]] && regex+="|"
-    regex+="${ip//./\\.}"
-  done
+  local regex
+  regex=$(build_network_ioc_regex)
   search_tree_regex "$ROOT" "$regex" "Historical network IOCs"
 }
 
@@ -603,6 +665,8 @@ show_iocs() {
   section "Built-in IOCs and hunting pivots"
   printf 'Network indicators:\n' | emit_stream
   printf '  %s\n' "${IOC_IPS[@]}" | emit_stream
+  printf '\nDomain indicators:\n' | emit_stream
+  printf '  %s\n' "${IOC_DOMAINS[@]}" | emit_stream
   printf '\nFile/path indicators:\n' | emit_stream
   printf '  %s\n' "${IOC_PATHS[@]}" | emit_stream
   printf '\nKnown SHA-256 hashes:\n' | emit_stream
@@ -634,6 +698,38 @@ live_artifacts() {
       list_recent_files "$d" | emit_stream || true
     fi
   done
+}
+
+live_saml_second_wave() {
+  section "LIVE: SAML / second-wave pivots"
+  local f found=0
+  for f in /flash/nsconfig/ns.conf /nsconfig/ns.conf; do
+    [[ -r "$f" ]] || continue
+    log INFO "Checking SAML applicability in $f"
+    grep -Ein '^add authentication saml(Action|IdPProfile)' "$f" 2>/dev/null | emit_stream || true
+    if grep -Eiq '^add authentication saml(Action|IdPProfile)' "$f" 2>/dev/null; then
+      log WARN "SAML authentication action/profile present in $f. Citrix says SAML Gateway/AAA deployments are in scope for the separate October 2 issue."
+      found=1
+    fi
+  done
+
+  for f in /var/log/ns.log /var/log/ns.log.* /var/log/messages /var/log/messages.*; do
+    [[ -r "$f" ]] || continue
+    grep -Ein 'proc nsaaad.*(SIGNALED|EXITED)|maximum number of restarts|Pitboss declaring system failure|All monitored processes have exited, rebooting|213\.209\.159\.55:443/t/|pyrlnk\.cc|pylrk\.cc|fetch\$\{IFS\}-qo\$\{IFS\}/v|fetch\$\{IFS\}-qo-\$\{IFS\}https://f\.pylrk\.cc' "$f" 2>/dev/null | tail -n 250 | emit_stream || true
+  done
+
+  if [[ -e /v ]]; then
+    log ALERT "Found /v payload path reported in second-wave SAML/log-injection activity."
+    ls -la /v 2>&1 | emit_stream
+  fi
+  if [[ -d /var/core ]]; then
+    find /var/core -maxdepth 2 -name 'nsaaad-*.gz' -print 2>/dev/null | while IFS= read -r core; do
+      log WARN "Found nsaaad core file: $core"
+      ls -la "$core" 2>&1 | emit_stream
+    done
+  fi
+
+  (( found == 0 )) && log INFO "No SAML action/profile lines found in the checked NetScaler config files."
 }
 
 live_web_config() {
@@ -734,11 +830,8 @@ live_network() {
     log WARN "Neither sockstat nor netstat is available."
   fi
 
-  local regex="" ip
-  for ip in "${IOC_IPS[@]}"; do
-    [[ -n "$regex" ]] && regex+="|"
-    regex+="${ip//./\\.}"
-  done
+  local regex
+  regex=$(build_network_ioc_regex)
 
   local conn_hits=""
   conn_hits=$(list_ipv4_network 2>/dev/null | grep -E "$regex" || true)
@@ -749,12 +842,9 @@ live_network() {
 }
 
 live_ioc_logs() {
-  section "LIVE: historical IOC IPs in local logs"
-  local regex="" ip f
-  for ip in "${IOC_IPS[@]}"; do
-    [[ -n "$regex" ]] && regex+="|"
-    regex+="${ip//./\\.}"
-  done
+  section "LIVE: historical IOC IPs/domains in local logs"
+  local regex f
+  regex=$(build_network_ioc_regex)
   for f in /var/log/messages* /var/log/ns.log* /var/log/httpaccess* /var/log/httperror* /var/log/sh.log*; do
     [[ -r "$f" ]] || continue
     grep -Ein "$regex" "$f" 2>/dev/null | tail -n 250 | emit_stream || true
@@ -787,6 +877,7 @@ live_hash_candidates() {
 
 live_all() {
   live_artifacts
+  live_saml_second_wave
   live_web_config
   live_dtls_nsppe
   live_http_logs
@@ -856,34 +947,36 @@ live_menu() {
 
 Live NetScaler threat hunt (read-only):
   1) Known file artifacts and staging paths
-  2) Apache/PHP/httpd.conf persistence
-  3) DTLS / NSPPE / pitboss log findings
-  4) HTTP access/error log findings
-  5) /bin/sh SUID/SGID check
-  6) Processes + WHIPSHOT/SLAPSHOT IPC
-  7) Cron persistence (.nsmon etc.)
-  8) Privileged account / ns.conf (sec_monitor etc.)
-  9) Listeners/active connections + IOC IPs
- 10) IOC IPs in local logs
- 11) SHA-256 checks on high-risk paths
- 12) Show IOC list
+  2) SAML / second-wave pivots
+  3) Apache/PHP/httpd.conf persistence
+  4) DTLS / NSPPE / pitboss log findings
+  5) HTTP access/error log findings
+  6) /bin/sh SUID/SGID check
+  7) Processes + WHIPSHOT/SLAPSHOT IPC
+  8) Cron persistence (.nsmon etc.)
+  9) Privileged account / ns.conf (sec_monitor etc.)
+ 10) Listeners/active connections + IOC IPs/domains
+ 11) IOC IPs/domains in local logs
+ 12) SHA-256 checks on high-risk paths
+ 13) Show IOC list
   0) Back
 MENU
     printf 'Choice: '
     read -r choice
     case "$choice" in
       1) live_artifacts ;;
-      2) live_web_config ;;
-      3) live_dtls_nsppe ;;
-      4) live_http_logs ;;
-      5) live_shell_permissions ;;
-      6) live_processes ;;
-      7) live_cron ;;
-      8) live_accounts_config ;;
-      9) live_network ;;
-      10) live_ioc_logs ;;
-      11) live_hash_candidates ;;
-      12) show_iocs ;;
+      2) live_saml_second_wave ;;
+      3) live_web_config ;;
+      4) live_dtls_nsppe ;;
+      5) live_http_logs ;;
+      6) live_shell_permissions ;;
+      7) live_processes ;;
+      8) live_cron ;;
+      9) live_accounts_config ;;
+      10) live_network ;;
+      11) live_ioc_logs ;;
+      12) live_hash_candidates ;;
+      13) show_iocs ;;
       0) return ;;
       *) printf 'Invalid choice.\n' ;;
     esac
