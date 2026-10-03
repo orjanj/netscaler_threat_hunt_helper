@@ -2,11 +2,29 @@
 
 These are **historical hunting indicators**, not a complete or permanent blocklist. An exact match needs surrounding context, and the absence of these indicators does not exclude exploitation.
 
+## Source URLs
+
+The source labels in this file refer to the public reporting below.
+
+- Citrix CTX697096: https://support.citrix.com/external/article/CTX697096
+- Citrix SAML guidance: https://community.citrix.com/techzone-blogs/110_security-updates/security-update-guidance-for-netscaler-saml-authentication-deployments/
+- GTIG / Mandiant: https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
+- Palo Alto Networks Unit 42: https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
+- Beazley Security Labs BSL-A1216: https://labs.beazley.security/advisories/BSL-A1216
+- PitScaler public briefing / IOC compilation: https://pitscaler.com/
+- LevelBlue SpiderLabs: https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
+- Arctic Wolf Labs Pack Alert: https://www.reddit.com/r/u_ArcticWolf_Official/comments/1wudni7/pack_alert_september_30_2026_arctic_wolf_labs/
+- Wolf Tools Pack Alert: https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
+- GreyNoise: https://www.greynoise.io/blog/swarming-against-citrix-0-day-exploitation
+- watchTowr Labs: https://labs.watchtowr.com/
+
 ## Network Indicators
 
 The current script contains the following historical IPv4 indicators.
 
 ### GTIG / Mandiant
+
+Source: https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
 
 ```text
 143.198.7.94
@@ -14,6 +32,8 @@ The current script contains the following historical IPv4 indicators.
 ```
 
 ### Unit 42
+
+Source: https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
 
 ```text
 45.61.136.143
@@ -40,6 +60,8 @@ The current script contains the following historical IPv4 indicators.
 
 ### LevelBlue
 
+Source: https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
+
 ```text
 70.172.58.168
 45.141.21.130
@@ -56,6 +78,12 @@ The current script contains the following historical IPv4 indicators.
 
 ### Beazley / GreyNoise / Lupovis
 
+Sources:
+
+- https://labs.beazley.security/advisories/BSL-A1216
+- https://www.greynoise.io/blog/swarming-against-citrix-0-day-exploitation
+- https://pitscaler.com/
+
 ```text
 149.104.78.141
 138.28.234.38
@@ -70,6 +98,11 @@ The current script contains the following historical IPv4 indicators.
 
 ## Domain Indicators
 
+Sources:
+
+- https://labs.beazley.security/advisories/BSL-A1216
+- https://pitscaler.com/
+
 ```text
 httpworkbench.com
 webhook.site
@@ -81,6 +114,15 @@ f.pylrk.cc
 ```
 
 ## File And Path Indicators
+
+Sources:
+
+- https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
+- https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
+- https://labs.beazley.security/advisories/BSL-A1216
+- https://pitscaler.com/
+- https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
+- https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
 
 ```text
 /vpn/scripts/linux/nsgclient18.deb
@@ -119,6 +161,13 @@ Some of these may be short-lived because observed payloads included cleanup beha
 
 ## SHA-256 Indicators
 
+Sources:
+
+- https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
+- https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
+- https://labs.beazley.security/advisories/BSL-A1216
+- https://pitscaler.com/
+
 ```text
 ae22ef2517b5c0fb47f78745b9cb5260acee0e751b89bcd354640ff8bc8d29ec
   Unit 42 - nsg64.deb web shell
@@ -154,6 +203,17 @@ b9b0a4380db462c706597bd3e6a08d4d99fcbbf0919d63eb99b488d396c8ce63
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
 
 ## Behavioral Hunting Pivots
+
+Sources:
+
+- https://support.citrix.com/external/article/CTX697096
+- https://community.citrix.com/techzone-blogs/110_security-updates/security-update-guidance-for-netscaler-saml-authentication-deployments/
+- https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
+- https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
+- https://labs.beazley.security/advisories/BSL-A1216
+- https://pitscaler.com/
+- https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
+- https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
 
 The script also searches for behavior that can be more durable than exact IOCs.
 
