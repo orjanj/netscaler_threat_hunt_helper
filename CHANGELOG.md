@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.1 - 2026-10-03
+
+- Added the project versioning policy: `y` increments for new IoCs or detection coverage, and `z` increments for documentation-only or other small repository changes without new IoCs.
+- Moved the changelog out of README into `CHANGELOG.md`.
+- Moved the detailed indicator reference out of README into `IOCS.md`.
+- Left the script `VERSION` at `1.3` because no hunt logic or built-in IoCs changed in this documentation-only patch.
+
 ## 1.3 - 2026-10-03
 
 - Added Beazley/PitScaler October 2/3 second-wave indicators: `213.209.159.55`, `51.158.203.95`, `185.244.213.112`, `158.94.211.205`, `pyrlnk.cc`, `pylrk.cc`, `f.pylrk.cc`, `webhook.site`, and `dnshook.site`.
