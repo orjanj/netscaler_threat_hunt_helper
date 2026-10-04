@@ -7,6 +7,7 @@ These are **historical hunting indicators**, not a complete or permanent blockli
 The source labels in this file refer to the public reporting below.
 
 - Citrix CTX697096: https://support.citrix.com/external/article/CTX697096
+- Citrix CTX697174 (CVE-2026-88779): https://support.citrix.com/external/article/CTX697174/citrix-netscaler-adc-and-citrix-netscale.html
 - Citrix SAML guidance: https://community.citrix.com/techzone-blogs/110_security-updates/security-update-guidance-for-netscaler-saml-authentication-deployments/
 - GTIG / Mandiant: https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
 - Palo Alto Networks Unit 42: https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
@@ -203,6 +204,17 @@ b9b0a4380db462c706597bd3e6a08d4d99fcbbf0919d63eb99b488d396c8ce63
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
 
 ## Behavioral Hunting Pivots
+
+### CVE-2026-88779 applicability check
+
+Citrix CTX697174 identifies these configuration entries as the SAML precondition to check:
+
+```text
+add authentication samlAction
+add authentication samlIdPProfile
+```
+
+The script searches for those directives in readable live `ns.conf` files and offline configuration files. A match is not proof of exploitability: check the Gateway/AAA deployment context and running build against CTX697174. The advisory does not provide a distinct log signature that can reliably identify exploitation, so generic SAML or service-denial log entries are not presented as CVE-specific indicators.
 
 Sources:
 

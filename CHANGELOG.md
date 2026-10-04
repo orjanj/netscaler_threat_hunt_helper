@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4 - 2026-10-04
+- Added live and offline read-only checks for the Citrix-documented SAML SP/IdP configuration precondition for CVE-2026-88779 (CTX697174).
+- Clarified that configuration matches are applicability leads only; build/patch status and exploitation are not determined by this check.
+- Added CTX697174 source and usage guidance.
+- Bumped script version to 1.4.
+
 ## 1.3.2 - 2026-10-03
 - Added source URLs to `IOCS.md` so the standalone indicator reference includes provenance.
 - Bumped script `VERSION` to `1.3.2` for the documentation-only patch.

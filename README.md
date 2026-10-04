@@ -15,7 +15,7 @@
 - [Versioning policy](#versioning-policy)
 - [Primary sources](#primary-sources)
 
-A defensive Bash utility for hunting indicators and post-exploitation artifacts associated with **Citrix NetScaler ADC / NetScaler Gateway CTX697096**, with primary focus on observed exploitation of **CVE-2026-88771** and **CVE-2026-88772**.
+A defensive Bash utility for hunting indicators and post-exploitation artifacts associated with **Citrix NetScaler ADC / NetScaler Gateway CTX697096**, with primary focus on observed exploitation of **CVE-2026-88771** and **CVE-2026-88772**. It also checks the documented SAML configuration precondition for **CVE-2026-88779** (CTX697174).
 
 The script can be used in two ways:
 
@@ -168,6 +168,7 @@ The interactive offline menu allows you to run specific hunts:
 5) HTTP log pivots (.deb/.sig/.ico/vpn paths)
 6) SHA-256 search of candidate files
 7) Show IOC list
+8) CVE-2026-88779 SAML configuration precondition
 0) Back
 ```
 
@@ -220,9 +221,12 @@ The interactive live menu lets you select individual checks:
 11) IOC IPs/domains in local logs
 12) SHA-256 checks on high-risk paths
 13) Show IOC list
+14) CVE-2026-88779 SAML configuration precondition
 ```
 
 The live checks do **not** patch, remove files, terminate processes, restart services, reboot the appliance, or modify NetScaler configuration.
+
+The CVE-2026-88779 check searches readable `ns.conf` files for the Citrix-documented SAML SP/IdP directives `add authentication samlAction` and `add authentication samlIdPProfile`. A match indicates a configuration precondition to investigate, not proof that the appliance is vulnerable or exploited. The check does not determine the running software build; verify it separately with the NetScaler CLI (`show ns version`) and compare against the fixed builds in CTX697174. No specific attack-log signature is documented in the advisory, so the script does not treat generic SAML or DoS log messages as proof of this CVE.
 
 #### Important forensic note about report files
 
@@ -363,9 +367,10 @@ Do not publish raw reports without reviewing and sanitizing them first.
 
 ## Coverage summary
 
-The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-03**.
+The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-04**.
 
 - Citrix / NetScaler: affected product context, vulnerability preconditions, SAML applicability checks, and remediation guidance.
+- Citrix CTX697174: read-only search for SAML SP/IdP configuration preconditions for CVE-2026-88779; patch/build verification and exploitation detection remain manual/out of scope.
 - GTIG / Mandiant: DTLS/NSPPE log pivots, Apache/PHP manipulation, WHIPSHOT/SLAPSHOT-related pivots, SUID/SGID checks, suspicious VPN paths, and network indicators.
 - Palo Alto Networks Unit 42: pre-disclosure infrastructure, web-shell paths, anomalous `GetUserName` activity, `.deb` web-shell filenames, SHA-256 indicators, fingerprinting URLs, log-poisoning pivots, Apache alias pivots, and web-shell command behavior.
 - Beazley Security Labs / GreyNoise / Lupovis: exploitation/scanning IPs, DNS callback pivots, public PoC markers, second-wave SAML/log-injection delivery and callback pivots, Sliver payload hashes, and the GreyNoise `.ctxs.receiver` web-shell hash.
@@ -453,6 +458,14 @@ The script uses PitScaler as a public IOC cross-reference and for October 2/3 SA
 https://community.citrix.com/techzone-blogs/110_security-updates/security-update-guidance-for-netscaler-saml-authentication-deployments/
 
 The script uses Citrix's SAML applicability checks for `add authentication samlAction` and `add authentication samlIdPProfile`.
+
+### Citrix CTX697174 - CVE-2026-88779
+
+**Citrix NetScaler ADC and Citrix NetScaler Gateway Security Bulletin for CVE-2026-88779**
+
+https://support.citrix.com/external/article/CTX697174/citrix-netscaler-adc-and-citrix-netscale.html
+
+Citrix states that the issue requires a NetScaler configured as a SAML SP or SAML IdP, and publishes fixed builds. The script checks those SAML configuration directives in readable live `ns.conf` files and collected offline configuration files. It does not determine whether a matching deployment is on an affected build, whether Gateway/AAA context applies, whether virtual patching is enabled, or whether exploitation occurred. Use the vendor bulletin to verify and remediate.
 
 ### LevelBlue Threat Hunt Operations & Research / SpiderLabs
 

@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # NetScaler CTX697096 Threat Hunt Helper
-# Defensive/read-only hunting for CVE-2026-88771 / CVE-2026-88772 activity and related post-exploitation.
+# Defensive/read-only hunting for CVE-2026-88771 / CVE-2026-88772 / CVE-2026-88779 activity and related post-exploitation.
 #
 # Sources used for indicators and hunt logic (verified 2026-10-03):
 #   - Citrix CTX697096 security bulletin:
 #     https://support.citrix.com/external/article/CTX697096
+#   - Citrix CTX697174 security bulletin (CVE-2026-88779):
+#     https://support.citrix.com/external/article/CTX697174/citrix-netscaler-adc-and-citrix-netscale.html
 #   - Google Threat Intelligence Group / Mandiant:
 #     https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
 #   - Palo Alto Networks Unit 42:
@@ -37,7 +39,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.3.2"
+VERSION="1.4"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -549,6 +551,37 @@ hunt_webshell_patterns_offline() {
   search_tree_regex "$ROOT" "$regex" "Web shell / PHP / Apache indicators"
 }
 
+report_saml_config_file() {
+  local f="$1"
+  local matches
+  matches=$(grep -Ein '^[[:space:]]*add[[:space:]]+authentication[[:space:]]+(samlAction|samlIdPProfile)([[:space:]]|$)' "$f" 2>/dev/null || true)
+  if [[ -n "$matches" ]]; then
+    printf '%s\n' "$matches" | emit_stream
+    add_match_summary_details WARN "CVE-2026-88779 SAML precondition" "$f" "$matches"
+    log WARN "CVE-2026-88779 precondition found in $f (SAML SP/IdP configuration). This is applicability evidence, not proof of exploit or vulnerability; verify build and Gateway/AAA use."
+    return 0
+  fi
+  return 1
+}
+
+hunt_cve_2026_88779_offline() {
+  section "OFFLINE: CVE-2026-88779 SAML configuration precondition"
+  local f checked=0 found=0
+  while IFS= read -r -d '' f; do
+    ((checked+=1))
+    if report_saml_config_file "$f"; then
+      found=1
+    fi
+  done < <(find "$ROOT" -type f \( -name '*.conf' -o -name 'ns.conf' -o -name 'ns.conf.*' \) -print0 2>/dev/null)
+
+  if (( checked == 0 )); then
+    log WARN "No NetScaler configuration files were found in the evidence tree; CVE-2026-88779 applicability could not be assessed."
+  elif (( found == 0 )); then
+    log INFO "No SAML SP/IdP precondition directives found in $checked scanned configuration file(s); this does not establish that the appliance is unaffected."
+  fi
+  log INFO "This offline check does not establish the appliance build/patch status or detect exploitation; compare the appliance version with Citrix CTX697174."
+}
+
 hunt_named_artifacts_offline() {
   section "Known file/path indicators in collected material"
   local p base found=0
@@ -637,6 +670,7 @@ hunt_hashes_offline() {
 }
 
 offline_all() {
+  hunt_cve_2026_88779_offline
   hunt_log_behavior_offline
   hunt_ip_iocs_offline
   hunt_webshell_patterns_offline
@@ -730,6 +764,26 @@ live_saml_second_wave() {
   fi
 
   (( found == 0 )) && log INFO "No SAML action/profile lines found in the checked NetScaler config files."
+}
+
+live_cve_2026_88779() {
+  section "LIVE: CVE-2026-88779 applicability (SAML configuration)"
+  local f checked=0 found=0
+  for f in /flash/nsconfig/ns.conf /nsconfig/ns.conf; do
+    [[ -r "$f" ]] || continue
+    ((checked+=1))
+    log INFO "Checking CVE-2026-88779 SAML preconditions in $f"
+    if report_saml_config_file "$f"; then
+      found=1
+    fi
+  done
+
+  if (( checked == 0 )); then
+    log WARN "No readable ns.conf found in the checked locations; CVE-2026-88779 applicability could not be assessed."
+  elif (( found == 0 )); then
+    log INFO "No SAML SP/IdP precondition directives found in the checked ns.conf file(s); this does not establish that the appliance is unaffected."
+  fi
+  log INFO "Read-only configuration check only: it does not query the running build or detect exploitation. Verify the version separately with the NetScaler CLI (show ns version) and compare with Citrix CTX697174."
 }
 
 live_web_config() {
@@ -877,6 +931,7 @@ live_hash_candidates() {
 
 live_all() {
   live_artifacts
+  live_cve_2026_88779
   live_saml_second_wave
   live_web_config
   live_dtls_nsppe
@@ -915,6 +970,7 @@ Offline threat hunt - individual checks:
   5) HTTP log pivots (.deb/.sig/.ico/vpn paths)
   6) SHA-256 search of candidate files
   7) Show IOC list
+  8) CVE-2026-88779 SAML configuration precondition
   0) Back
 MENU
     printf 'Choice: '
@@ -927,6 +983,7 @@ MENU
       5) hunt_timeline_gaps_offline ;;
       6) hunt_hashes_offline ;;
       7) show_iocs ;;
+      8) hunt_cve_2026_88779_offline ;;
       0) return ;;
       *) printf 'Invalid choice.\n' ;;
     esac
@@ -959,6 +1016,7 @@ Live NetScaler threat hunt (read-only):
  11) IOC IPs/domains in local logs
  12) SHA-256 checks on high-risk paths
  13) Show IOC list
+ 14) CVE-2026-88779 SAML configuration precondition
   0) Back
 MENU
     printf 'Choice: '
@@ -977,6 +1035,7 @@ MENU
       11) live_ioc_logs ;;
       12) live_hash_candidates ;;
       13) show_iocs ;;
+      14) live_cve_2026_88779 ;;
       0) return ;;
       *) printf 'Invalid choice.\n' ;;
     esac
