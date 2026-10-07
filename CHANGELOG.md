@@ -7,6 +7,7 @@
 - Added PitScaler/Rapid7 public IOC pivots including `149.104.78.208`, `/vpn/c`, `.ctxs.receiver` hash `ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1`, and Sliver delivery markers.
 - Added PitScaler/Poppelgaard pivots for CVE-2026-88779 SAML probing/crash activity and the reported config/private-key dump to `81.94.239.8:8877`.
 - Added Fortra Core Impact context for `/p/u/doAuthentication.do`, delayed `ns_monuploadd_err.pl` execution, and root agent deployment behavior.
+- Added additional Unit42, TENEX, CERT-EU, Elastic, GreyNoise, Lupovis, Corelight/PitScaler, and Poppelgaard pivots including generic `pitboss` shell-token detection, `echvista.com`, `gsocket.io`, `194.26.29.88`, `138.199.200.90`, `nsepa.deb`, `vp_probe_nonexist`, Platypus artifacts, and exploit marker files.
 - Bumped script version to 1.5.
 
 ## 1.4 - 2026-10-04

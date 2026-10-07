@@ -373,13 +373,16 @@ The script combines indicators and behavioral hunting ideas from public reportin
 - Citrix CTX697174: read-only search for SAML SP/IdP configuration preconditions for CVE-2026-88779; patch/build verification and exploitation detection remain manual/out of scope.
 - GTIG / Mandiant: DTLS/NSPPE log pivots, Apache/PHP manipulation, WHIPSHOT/SLAPSHOT-related pivots, SUID/SGID checks, suspicious VPN paths, and network indicators.
 - Palo Alto Networks Unit 42: pre-disclosure infrastructure, web-shell paths, anomalous `GetUserName` activity, `.deb` web-shell filenames, SHA-256 indicators, fingerprinting URLs, log-poisoning pivots, Apache alias pivots, and web-shell command behavior.
+- CERT-EU / Elastic: base64 `INDEX:` staging, `ns_monuploadd_err.pl` context, and generic `pitboss` / packet-engine records containing shell metacharacters or URL-encoded shell syntax.
+- GreyNoise / Lupovis: pre-disclosure exploitation source, `.ctxs.receiver` web-shell path/hash, `receiver.min*.css` alias pivots, and Lupovis canary/DNS/fetch probes surfaced in public timelines.
+- TENEX: Platypus agent and post-exploitation pivots including `/var/core/.ns-cache`, `/netscaler.local`, replaced `customsnmpd`, process-name masquerading, mDNS mesh traffic, and `platypus-ingress` certificates.
 - eSentire TRU: four-cluster October 6 activity including `nsgtrust.deb`, additional exploitation sources, Platypus delivery through `entretiensol.com`, Python reverse-shell activity, and new SHA-256 indicators.
 - Nextron Systems: expanded THOR detection coverage context, including post-exploitation and web-shell behavior detection notes.
 - Fortra Emerging Threats: October 6 Core Impact module context for `/p/u/doLogon.do`, delayed `ns_monuploadd_err.pl` execution, and unauthenticated coverage updates.
 - Beazley Security Labs / GreyNoise / Lupovis: exploitation/scanning IPs, DNS callback pivots, public PoC markers, second-wave SAML/log-injection delivery and callback pivots, Sliver payload hashes, and the GreyNoise `.ctxs.receiver` web-shell hash.
 - LevelBlue / SpiderLabs: CVE-2026-88771 authentication/log-poisoning pivots, `sec_monitor`, staging artifacts, payload hashes, command-obfuscation pivots, and reverse-shell/payload/exfiltration infrastructure.
 - Arctic Wolf Labs: secondary hunting set for `/var/1.py`, `/var/tmp/.nsmon`, `nsmon.pl`, cron persistence, high-port listeners, and payload retrieval/execution behavior.
-- PitScaler: public IOC compilation and October SAML issue context, including contested `pyrlnk.cc` / `pylrk.cc` spellings, CVE-2026-88779 notes, nsaaad crash pivots, reported config/private-key dump behavior, and the dedicated October 7 IOC-table updates.
+- PitScaler / Poppelgaard: public IOC compilation and October SAML issue context, including contested `pyrlnk.cc` / `pylrk.cc` spellings, CVE-2026-88779 notes, nsaaad crash pivots, reported config/private-key dump behavior, Corelight reverse-shell/exfiltration pivots, `nsepa.deb` / `vp_probe_nonexist` probes, and the dedicated October 7 IOC-table updates.
 
 ## Indicator reference
 
@@ -438,6 +441,26 @@ https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
 
 The script uses Unit 42 reporting for pre-disclosure infrastructure, web-shell paths, anomalous `GetUserName` activity, `.deb` web-shell filenames, SHA-256 indicators, fingerprinting URLs, log-poisoning pivots, Apache alias pivots, and web-shell command behavior.
 
+### CERT-EU / Elastic
+
+**Taking "execute logging" a bit too literally - CVE-2026-88771**
+
+https://cert.europa.eu/blog/taking-execute-logging-a-bit-too-literally-cve-2026-88771
+
+**Potential NetScaler Log Poisoning Command Injection Attempt**
+
+https://github.com/elastic/detection-rules/blob/main/rules/network/initial_access_netscaler_log_poisoning_command_injection.toml
+
+The script uses CERT-EU and Elastic reporting for base64 `INDEX:` staging, `ns_monuploadd_err.pl` context, `PPE missed too many heartbeats` / `unexpectedly died` variants, and generic `pitboss` or packet-engine records containing shell metacharacters or URL-encoded shell syntax.
+
+### TENEX
+
+**What TENEX Observed Inside Active Exploitation of NetScaler Zero-Day**
+
+https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
+
+The script uses TENEX reporting for Platypus post-exploitation pivots including `/var/core/.ns-cache`, `client.crt`, `client.key`, `/netscaler.local`, replaced `/var/python/bin/customsnmpd`, process-name masquerading, `_platypus-mesh._tcp` mDNS traffic, and `platypus-ingress` certificate subjects.
+
 ### Beazley Security Labs / GreyNoise / Lupovis
 
 **BSL-A1216: Citrix NetScaler zero-day prompts emergency shutdowns**
@@ -446,14 +469,19 @@ https://labs.beazley.security/advisories/BSL-A1216
 
 The script uses Beazley Security Labs' consolidated public indicators for GreyNoise and Lupovis observations, including exploitation sources, DNS callback pivots, public PoC markers, second-wave SAML/log-injection delivery and callback pivots, Sliver payload hashes, and the GreyNoise `.ctxs.receiver` web-shell hash.
 
-### PitScaler
+**Swarming Against Citrix 0-Day Exploitation**
+
+https://www.greynoise.io/blog/swarming-against-citrix-0-day-exploitation
+
+### PitScaler / Poppelgaard
 
 **PitScaler - Citrix NetScaler Zero-Day Crisis**
 
 https://pitscaler.com/
 https://pitscaler.com/netscaler-iocs/
+https://www.poppelgaard.com/cve-2026-88771-through-cve-2026-88778-what-you-should-know-and-how-to-fix-your-netscaler-adc-netscaler-gateway
 
-The script uses PitScaler as a public IOC cross-reference and for October SAML issue context, including `213.209.159.55`, `/v`, `/t/`, nsaaad crash pivots, the `pyrlnk.cc` / `pylrk.cc` spelling conflict, Sliver delivery pivots, and Rapid7-referenced `/vpn/c` / `.ctxs.receiver` observations.
+The script uses PitScaler and Poppelgaard as public IOC cross-references and for October SAML issue context, including `213.209.159.55`, `/v`, `/t/`, nsaaad crash pivots, the `pyrlnk.cc` / `pylrk.cc` spelling conflict, Sliver delivery pivots, Rapid7-referenced `/vpn/c` / `.ctxs.receiver` observations, Corelight reverse-shell/exfiltration pivots, `nsepa.deb` / `vp_probe_nonexist` probes, `NO_AUTH`, and additional marker-file checks.
 
 ### Truesec
 

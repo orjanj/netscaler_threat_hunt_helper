@@ -11,12 +11,17 @@ The source labels in this file refer to the public reporting below.
 - Citrix SAML guidance: https://community.citrix.com/techzone-blogs/110_security-updates/security-update-guidance-for-netscaler-saml-authentication-deployments/
 - GTIG / Mandiant: https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
 - Palo Alto Networks Unit 42: https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
+- CERT-EU: https://cert.europa.eu/blog/taking-execute-logging-a-bit-too-literally-cve-2026-88771
+- Elastic detection rule: https://github.com/elastic/detection-rules/blob/main/rules/network/initial_access_netscaler_log_poisoning_command_injection.toml
+- GreyNoise: https://www.greynoise.io/blog/swarming-against-citrix-0-day-exploitation
+- TENEX: https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
 - eSentire TRU: https://www.esentire.com/blog/more-shells-than-a-seafood-buffet-tracking-citrix-netscaler-exploitation-activities-cve-2026-88771
 - Nextron Systems: https://www.nextron-systems.com/2026/10/06/update-on-citrix-netscaler-cve-2026-88771-and-cve-2026-88772-expanded-thor-detection-coverage/
 - Fortra Emerging Threats: https://www.fortra.com/security/emerging-threats/netscaler-cve-2026-88771-improper-input-validation-and-cve-2026-88772
 - Beazley Security Labs BSL-A1216: https://labs.beazley.security/advisories/BSL-A1216
 - PitScaler public briefing / IOC compilation: https://pitscaler.com/
 - PitScaler public IOC table: https://pitscaler.com/netscaler-iocs/
+- Thomas Poppelgaard NetScaler timeline / checker notes: https://www.poppelgaard.com/cve-2026-88771-through-cve-2026-88778-what-you-should-know-and-how-to-fix-your-netscaler-adc-netscaler-gateway
 - watchTowr CVE-2026-88779 rapid reaction: https://watchtowr.com/intelligence/citrix-netscaler-denial-of-service-memory-overflow-cve-2026-88779/
 - watchTowr CVE-2026-88779 FAQ: https://watchtowr.com/intelligence/citrix-netscaler-cve-2026-88779-faq/
 - LevelBlue SpiderLabs: https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
@@ -110,9 +115,15 @@ Sources:
 185.243.41.247
 81.94.239.8
 138.199.60.5
+78.128.113.10
+194.26.29.88
+138.199.200.90
+158.94.209.12
+68.178.160.183
+5.188.206.226
 ```
 
-`81.94.239.8` is reported by PitScaler/Poppelgaard as a config/private-key exfiltration receiver on TCP/8877. `138.199.60.5` is reported as a CVE-2026-88779 SAML crash-payload source. Treat both as hunting pivots and validate direction, timing, and appliance role before acting.
+`81.94.239.8` is reported by PitScaler/Poppelgaard as a config/private-key exfiltration receiver on TCP/8877. `138.199.60.5` is reported as a CVE-2026-88779 SAML crash-payload source. `194.26.29.88` is a Corelight/Poppelgaard reverse-shell host; `138.199.200.90` is an exfiltration destination from the PitScaler/Poppelgaard public IOC set. Treat these as hunting pivots and validate direction, timing, and appliance role before acting.
 
 ## Domain Indicators
 
@@ -130,6 +141,9 @@ www.pyrlnk.cc
 pylrk.cc
 f.pylrk.cc
 entretiensol.com
+instances.httpworkbench.com
+echvista.com
+gsocket.io
 ```
 
 ## File And Path Indicators
@@ -152,6 +166,8 @@ Sources:
 /vpn/scripts/linux/nsgbuild.deb
 /vpn/scripts/linux/nsgtrust.deb
 /logon/LogonPoint/Authentication/GetUserName
+/logon/LogonPoint/tmindex.html
+/nf/auth/doAuthentication.do
 /var/netscaler/logon/LogonPoint/custom/.ctxs.receiver
 /var/netscaler/logon/LogonPoint/custom/.slap.receiver
 /var/netscaler/logon/LogonPoint/custom/receiver.deb
@@ -168,9 +184,19 @@ Sources:
 /tmp/update_result_3567cs.tgz
 /var/netscaler/logon/insight-new.js
 /var/netscaler/logon/LogonPoint/xua.html
+/var/vpn/bookmark/nx_verify.html
+/netscaler/ns_gui/vpn/nx_verify.html
+/netscaler/ns_gui/vpn/id009.txt
+/netscaler/ns_gui/vpn/rce.txt
 /var/tmp/.nsmon
 /var/1.py
 /v
+/tmp/v
+/var/tmp/v
+/tmp/watchTowr
+/var/tmp/wtw888
+/var/tmp/boom
+/var/tmp/sh
 /nsconfig/.slap
 /flash/nsconfig/.slap
 /var/tmp/.ux
@@ -184,9 +210,16 @@ Sources:
 /nsconfig/.nsl
 /var/nslog/.nsl
 /var/core/.ns-cache
+/var/core/.ns-cache/client.crt
+/var/core/.ns-cache/client.key
 /netscaler.local
+/var/python/bin/customsnmpd
+/netscaler/ns_gui/admin_ui/e.txt
+/netscaler/ns_gui/admin_ui/log.txt
 /.x
+/lula
 /vpn/c
+/epa/scripts/linux/nsepa.deb
 /var/tmp/.nsmon/nsmon.pl
 /var/tmp/.nsmon/.cfg
 /var/tmp/.nsmon/.state
@@ -289,6 +322,8 @@ Examples include:
 - `pitboss PPE missed too many heartbeats`
 - `pitboss PPE unexpectedly died NSPPE`
 - `pitboss PPE missed too many heartbeats NSPPE`
+- Elastic-style generic `pitboss` / packet-engine records containing shell metacharacters or URL-encoded shell syntax
+- `NSPPE-00` malformed token variants
 - `NOT restarting NSPPE`
 - `orphan rings`
 - `${IFS}` in attacker-controlled command strings
@@ -305,6 +340,9 @@ Examples include:
 - `httpworkbench.com`
 - `webhook.site`
 - `dnshook.site`
+- `instances.httpworkbench.com`
+- `echvista.com`
+- `gsocket.io`
 - `pyrlnk.cc`
 - `pylrk.cc`
 - `213.209.159.55:443/t/`
@@ -317,6 +355,10 @@ Examples include:
 - `Rhfajaf1H992`
 - `/admin_ui/common/css/ns/ui.css`
 - `/vpn/js/rdx/core/lang/rdx_en.json.gz`
+- `/logon/LogonPoint/tmindex.html`
+- `/nf/auth/doAuthentication.do`
+- `/epa/scripts/linux/nsepa.deb`
+- `vp_probe_nonexist`
 - `/saml/login`
 - `/cgi/samlauth`
 - `/cgi/login`
@@ -331,13 +373,19 @@ Examples include:
 - suspicious activity involving `/vpn/media/` and `/vpn/scripts/`
 - suspicious activity involving `/nf/auth/doAuthentication.do` and `/logon/LogonPoint/Authentication/GetUserName`
 - `sec_monitor`
+- `NO_AUTH`
 - `customsnmpd`
+- `system-health`, `health-monitor`, `healthd`, and `gs-netcat`
+- `_platypus-mesh._tcp` mDNS traffic and TLS certificates with subject `platypus-ingress`
 - SUID/SGID permissions on `/bin/sh`
 - cron references to `.nsmon`, `curl`, `wget`, Python, Perl, or known staging paths
 - unexpected listeners in TCP/UDP port range `41000-41999`
 - SAML configuration lines `add authentication samlAction` or `add authentication samlIdPProfile`
 - nsaaad crash/restart lines such as `proc nsaaad`, `maximum number of restarts`, and `All monitored processes have exited, rebooting`
 - second-wave fetch/callback pivots involving `/v`, `f.pylrk.cc`, `webhook.site`, and `dnshook.site`
+- TENEX/Poppelgaard Platypus pivots involving `/var/core/.ns-cache`, `client.crt`, `client.key`, `/netscaler.local/ns_*.pl`, and replaced `/var/python/bin/customsnmpd`
+- Corelight/PitScaler/Poppelgaard pivots involving `194.26.29.88`, `138.199.200.90`, `echvista.com`, `gsocket.io`, `nsepa.deb`, and `vp_probe_nonexist`
+- exploit marker/output files such as `nx_verify.html`, `id009.txt`, `rce.txt`, `/tmp/watchTowr`, `/var/tmp/wtw*`, `/var/tmp/boom`, and small files containing `uid=0(root)`
 - Sliver delivery pivots involving `/HaKi2ufpiQ8AeVTZ/host`, `citrix3.bad`, and `IMPLANT_CAPABILITY_TUNNEL_TERMINAL_V1`
 - eSentire cluster pivots including `nsgtrust.deb`, `entretiensol.com`, Platypus enrollment paths, `platypus-agent/public-ip-probe`, and `application/x-protobuf-platypus-v2`
 - config/private-key dump pivots including `===CONF:`, `===KEY:`, private-key markers, random `.css` files under `LogonPoint`, and `curl --data-binary` to TCP/8877

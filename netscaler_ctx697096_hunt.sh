@@ -11,6 +11,14 @@
 #     https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
 #   - Palo Alto Networks Unit 42:
 #     https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
+#   - CERT-EU:
+#     https://cert.europa.eu/blog/taking-execute-logging-a-bit-too-literally-cve-2026-88771
+#   - Elastic detection rules:
+#     https://github.com/elastic/detection-rules/blob/main/rules/network/initial_access_netscaler_log_poisoning_command_injection.toml
+#   - GreyNoise:
+#     https://www.greynoise.io/blog/swarming-against-citrix-0-day-exploitation
+#   - TENEX:
+#     https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
 #   - eSentire TRU:
 #     https://www.esentire.com/blog/more-shells-than-a-seafood-buffet-tracking-citrix-netscaler-exploitation-activities-cve-2026-88771
 #   - Nextron Systems:
@@ -22,6 +30,8 @@
 #   - PitScaler public briefing / IOC compilation:
 #     https://pitscaler.com/
 #     https://pitscaler.com/netscaler-iocs/
+#   - Thomas Poppelgaard NetScaler timeline / checker notes:
+#     https://www.poppelgaard.com/cve-2026-88771-through-cve-2026-88778-what-you-should-know-and-how-to-fix-your-netscaler-adc-netscaler-gateway
 #   - watchTowr Labs technical analysis:
 #     https://labs.watchtowr.com/
 #     https://watchtowr.com/intelligence/citrix-netscaler-denial-of-service-memory-overflow-cve-2026-88779/
@@ -126,6 +136,12 @@ IOC_IPS=(
   "185.243.41.247"     # eSentire campaign infrastructure
   "81.94.239.8"        # PitScaler / Poppelgaard config and private-key exfil receiver on TCP/8877
   "138.199.60.5"       # PitScaler / Poppelgaard CVE-2026-88779 SAML crash-payload source
+  "78.128.113.10"      # Lupovis / Poppelgaard fetch-based next-stage attempt
+  "194.26.29.88"       # Corelight / Poppelgaard reverse-shell host
+  "138.199.200.90"     # PitScaler / Poppelgaard exfiltration destination
+  "158.94.209.12"      # Poppelgaard community IOC compilation
+  "68.178.160.183"     # Poppelgaard community IOC compilation
+  "5.188.206.226"      # Poppelgaard community IOC compilation
 )
 
 IOC_DOMAINS=(
@@ -137,6 +153,9 @@ IOC_DOMAINS=(
   "pylrk.cc"           # Beazley/Poppelgaard reported second-wave payload delivery spelling
   "f.pylrk.cc"         # Beazley Sliver payload delivery
   "entretiensol.com"   # eSentire / Arctic Wolf Platypus C2 and artifact host
+  "instances.httpworkbench.com" # Lupovis / Poppelgaard DNS exfiltration subdomain pattern
+  "echvista.com"       # PitScaler / Poppelgaard public IOC compilation
+  "gsocket.io"         # Poppelgaard second-wave reverse-shell/C2 pivot
 )
 
 # Host/file indicators.
@@ -149,6 +168,8 @@ IOC_PATHS=(
   "/vpn/scripts/linux/nsgbuild.deb"
   "/vpn/scripts/linux/nsgtrust.deb"
   "/logon/LogonPoint/Authentication/GetUserName"
+  "/logon/LogonPoint/tmindex.html"
+  "/nf/auth/doAuthentication.do"
   "/var/netscaler/logon/LogonPoint/custom/.ctxs.receiver"
   "/var/netscaler/logon/LogonPoint/custom/.slap.receiver"
   "/var/netscaler/logon/LogonPoint/custom/receiver.deb"
@@ -165,9 +186,19 @@ IOC_PATHS=(
   "/tmp/update_result_3567cs.tgz"
   "/var/netscaler/logon/insight-new.js"
   "/var/netscaler/logon/LogonPoint/xua.html"
+  "/var/vpn/bookmark/nx_verify.html"
+  "/netscaler/ns_gui/vpn/nx_verify.html"
+  "/netscaler/ns_gui/vpn/id009.txt"
+  "/netscaler/ns_gui/vpn/rce.txt"
   "/var/tmp/.nsmon"
   "/var/1.py"
   "/v"
+  "/tmp/v"
+  "/var/tmp/v"
+  "/tmp/watchTowr"
+  "/var/tmp/wtw888"
+  "/var/tmp/boom"
+  "/var/tmp/sh"
   "/nsconfig/.slap"
   "/flash/nsconfig/.slap"
   "/var/tmp/.ux"
@@ -181,9 +212,16 @@ IOC_PATHS=(
   "/nsconfig/.nsl"
   "/var/nslog/.nsl"
   "/var/core/.ns-cache"
+  "/var/core/.ns-cache/client.crt"
+  "/var/core/.ns-cache/client.key"
   "/netscaler.local"
+  "/var/python/bin/customsnmpd"
+  "/netscaler/ns_gui/admin_ui/e.txt"
+  "/netscaler/ns_gui/admin_ui/log.txt"
   "/.x"
+  "/lula"
   "/vpn/c"
+  "/epa/scripts/linux/nsepa.deb"
   "/var/tmp/.nsmon/nsmon.pl"
   "/var/tmp/.nsmon/.cfg"
   "/var/tmp/.nsmon/.state"
@@ -219,8 +257,10 @@ LOG_PATTERNS=(
   "orphan rings"
   "pitboss PPE unexpectedly died"
   "pitboss PPE unexpectedly died NSPPE"
+  'pitboss.*(;|`|\$\(|&&|\|\||\||>|<|%3[bB]|%60|%7[cC]|%24%28|%26%26|%3[eE]|%3[cC])'
   "pitboss PPE missed too many heartbeats"
   "pitboss PPE missed too many heartbeats[[:space:]]?NSPPE"
+  "NSPPE-00"
   "HTTP_NSC_LDAP"
   "HTTP_NSC_CLIENTTYPE"
   "HTTP_X_UX"
@@ -228,8 +268,11 @@ LOG_PATTERNS=(
   "ns-88771-poc"
   "NX-CVE-OK"
   "httpworkbench\.com"
+  "instances\.httpworkbench\.com"
   "webhook\.site"
   "dnshook\.site"
+  "echvista\.com"
+  "gsocket\.io"
   "pyrlnk\.cc"
   "pylrk\.cc"
   "213\.209\.159\.55:443/t/"
@@ -239,6 +282,9 @@ LOG_PATTERNS=(
   "/vpn/media/"
   "/vpn/scripts/"
   "/nf/auth/doAuthentication\.do"
+  "/logon/LogonPoint/tmindex\.html"
+  "/epa/scripts/linux/nsepa\.deb"
+  "vp_probe_nonexist"
   "/p/u/doAuthentication\.do"
   "/p/u/doLogon\.do"
   "/cgi/login"
@@ -251,13 +297,21 @@ LOG_PATTERNS=(
   "LogonUISimple.html.style.min.css"
   "LogonUISimple\.html\.style\.min\.[[:xdigit:]]+\.css"
   "sec_monitor"
+  "NO_AUTH"
   '\$\{IFS\}'
   "customsnmpd"
+  "system-health"
+  "health-monitor"
+  "healthd"
+  "gs-netcat"
+  "_platypus-mesh\._tcp"
+  "platypus-ingress"
   "ns_monuploadd_err\.pl"
   "/var/netscaler/\.ns_suidcmd"
   "chmod[[:space:]]+6555[[:space:]]+/bin/sh"
   "/var/run/httpd\.pid"
   "update_result_3567cs.tgz"
+  "update_result_[^[:space:]/]*\.tgz"
   "\.ctxs\.receiver"
   "\.local_journal"
   "\.uxdport"
@@ -265,6 +319,14 @@ LOG_PATTERNS=(
   "nsmon.pl"
   "/var/tmp/\.nsmon"
   "/var/1.py"
+  "admin_ui/(e|log)\.txt"
+  "nx_verify\.html"
+  "wtw[[:alnum:]_.-]*"
+  "watchTowr"
+  "uid=0\(root\)"
+  "/tmp/v"
+  "/var/tmp/v"
+  "/var/tmp/sh"
   "fetch\$\{IFS\}-qo\$\{IFS\}/v"
   "fetch\$\{IFS\}-qo-\$\{IFS\}https://f\.pylrk\.cc"
   "nohup\$\{IFS\}fetch"
@@ -293,6 +355,8 @@ LOG_PATTERNS=(
   "/download/x\.sh"
   "45\.141\.21\.130/443"
   "81\.94\.239\.8:8877"
+  "194\.26\.29\.88"
+  "138\.199\.200\.90"
   "curl[[:space:]].*--data-binary.*:8877"
   "===CONF:"
   "===KEY:"
@@ -301,6 +365,7 @@ LOG_PATTERNS=(
   "scanner-probe"
   "probe/1"
   "PoCbit"
+  "PD9[A-Za-z0-9+/=]{8,}"
   "/HaKi2ufpiQ8AeVTZ/host"
   "citrix3\.bad"
   "IMPLANT_CAPABILITY_TUNNEL_TERMINAL_V1"
@@ -337,6 +402,9 @@ WEBSHELL_PATTERNS=(
   "httpd\.conf\.slap\.bak"
   "Pylrkfbsd"
   "HTTP_NSC_CLI"
+  "eval[[:space:]]*\([[:space:]]*(gzinflate|base64_decode|\$_(GET|POST|REQUEST|COOKIE|SERVER))"
+  "gzinflate[[:space:]]*\("
+  "application/x-protobuf-platypus-v2"
 )
 
 emit_stream() {
