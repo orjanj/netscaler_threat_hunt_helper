@@ -25,6 +25,8 @@
 #     https://www.nextron-systems.com/2026/10/06/update-on-citrix-netscaler-cve-2026-88771-and-cve-2026-88772-expanded-thor-detection-coverage/
 #   - Fortra Emerging Threats:
 #     https://www.fortra.com/security/emerging-threats/netscaler-cve-2026-88771-improper-input-validation-and-cve-2026-88772
+#   - SOCRadar:
+#     https://socradar.io/blog/netscaler-c2-cve-2026-88771-exploitation/
 #   - Beazley Security Labs BSL-A1216:
 #     https://labs.beazley.security/advisories/BSL-A1216
 #   - PitScaler public briefing / IOC compilation:
@@ -58,7 +60,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.6.1"
+VERSION="1.7"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -142,6 +144,7 @@ IOC_IPS=(
   "158.94.209.12"      # Poppelgaard community IOC compilation
   "68.178.160.183"     # Poppelgaard community IOC compilation
   "5.188.206.226"      # Poppelgaard community IOC compilation
+  "45.143.130.195"     # SOCRadar NetScaler C2 HTTP/DNS listener
 )
 
 IOC_DOMAINS=(
@@ -222,6 +225,7 @@ IOC_PATHS=(
   "/lula"
   "/vpn/c"
   "/epa/scripts/linux/nsepa.deb"
+  "/tmp/.nsagent"
   "/var/tmp/.nsmon/nsmon.pl"
   "/var/tmp/.nsmon/.cfg"
   "/var/tmp/.nsmon/.state"
@@ -246,6 +250,12 @@ IOC_HASHES["57f9f30c50240fd48d761de7961a430cdebf2c084a36bc76d376a1ce8e6dfa9d"]="
 IOC_HASHES["927c7fbef2e620c1ce482c3ed67ebf53da97693c1d6c7552c77aec84ba982cf8"]="eSentire / Arctic Wolf Platypus bootstrap script"
 IOC_HASHES["c98aee75c5e199c9b5527984ce48675d665963f7cab8ce9f2e82465de6b58727"]="eSentire / TENEX Platypus agent FreeBSD amd64"
 IOC_HASHES["ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1"]="Rapid7 / PitScaler .ctxs.receiver webshell sample"
+IOC_HASHES["8588d11874ab52a1637953dc5538984647023d00b529f695fbd0e40cf8e5e852"]="SOCRadar NetScaler C2 run.sh"
+IOC_HASHES["4992f575f3f1fc448cf54a4a0ce13cf6548790777abe0af1f935663498ea5639"]="SOCRadar NetScaler C2 targets.py"
+IOC_HASHES["69a34c591eaaa2cbecaeed10c303b8dcf04c846b8408491da5452b9cfc93f686"]="SOCRadar NetScaler C2 probe.py"
+IOC_HASHES["a3e26053975daa0a12a4848ce9533e5c439617cd7f69851347be2061999b4cd4"]="SOCRadar NetScaler C2 exploit.py"
+IOC_HASHES["a9142989d912098856e58f2c74c2266e39150d50bc59722f915dade1ddfddf4a"]="SOCRadar NetScaler C2 c2_server.py"
+IOC_HASHES["f9e06d412dee96d98db4d4588f0012af859cc11caaae3e130697f282447cf07f"]="SOCRadar NetScaler C2 pollctl.py"
 
 # Strings / behavior pivots. These are intentionally broader than exact IOCs.
 LOG_PATTERNS=(
@@ -257,6 +267,7 @@ LOG_PATTERNS=(
   "orphan rings"
   "pitboss PPE unexpectedly died"
   "pitboss PPE unexpectedly died NSPPE"
+  "pitboss NSPPE-00;"
   'pitboss.*(;|`|\$\(|&&|\|\||\||>|<|%3[bB]|%60|%7[cC]|%24%28|%26%26|%3[eE]|%3[cC])'
   "pitboss PPE missed too many heartbeats"
   "pitboss PPE missed too many heartbeats[[:space:]]?NSPPE"
@@ -279,10 +290,14 @@ LOG_PATTERNS=(
   "158\.94\.211\.205:8080"
   "/admin_ui/common/css/ns/ui\.css"
   "/vpn/js/rdx/core/lang/rdx_en\.json\.gz"
+  "/nitro/v1/config/login(\?action=login)?"
   "/vpn/media/"
   "/vpn/scripts/"
   "/nf/auth/doAuthentication\.do"
+  "/nf/auth/getAuthenticationRequirements\.do"
   "/logon/LogonPoint/tmindex\.html"
+  "/logon/LogonPoint/index\.html"
+  "/vpn/index\.html"
   "/epa/scripts/linux/nsepa\.deb"
   "vp_probe_nonexist"
   "/p/u/doAuthentication\.do"
@@ -357,6 +372,18 @@ LOG_PATTERNS=(
   "81\.94\.239\.8:8877"
   "194\.26\.29\.88"
   "138\.199\.200\.90"
+  "45\.143\.130\.195"
+  "45\.143\.130\.195:8899"
+  'curl\$\{IFS\}-sk\$\{IFS\}45\.143\.130\.195:8899/s/[[:xdigit:]]{8}\|sh'
+  'nslookup\$\{IFS\}[[:xdigit:]]{8}\.p1\.oob\.45\.143\.130\.195'
+  'p1\.oob\.45\.143\.130\.195'
+  '/s/[[:xdigit:]]{8}(\|sh)?'
+  '/a/[[:xdigit:]]{8}'
+  '/p/[[:xdigit:]]{8}\?h=[[:xdigit:]]+&u=[[:xdigit:]]+&src=agent'
+  '/c/[[:xdigit:]]{8}'
+  '/r/[[:xdigit:]]{8}\?d=[[:xdigit:]]+'
+  ";# unexpectedly died"
+  "/tmp/\.nsagent"
   "curl[[:space:]].*--data-binary.*:8877"
   "===CONF:"
   "===KEY:"

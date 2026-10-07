@@ -379,6 +379,7 @@ The script combines indicators and behavioral hunting ideas from public reportin
 - eSentire TRU: four-cluster October 6 activity including `nsgtrust.deb`, additional exploitation sources, Platypus delivery through `entretiensol.com`, Python reverse-shell activity, and new SHA-256 indicators.
 - Nextron Systems: expanded THOR detection coverage context, including post-exploitation and web-shell behavior detection notes.
 - Fortra Emerging Threats: October 6 Core Impact module context for `/p/u/doLogon.do`, delayed `ns_monuploadd_err.pl` execution, and unauthenticated coverage updates.
+- SOCRadar: NetScaler C2 infrastructure, toolkit hashes, C2 agent path, HTTP/DNS callback paths, and exact CVE-2026-88771 injection strings.
 - Beazley Security Labs / GreyNoise / Lupovis: exploitation/scanning IPs, DNS callback pivots, public PoC markers, second-wave SAML/log-injection delivery and callback pivots, Sliver payload hashes, and the GreyNoise `.ctxs.receiver` web-shell hash.
 - LevelBlue / SpiderLabs: CVE-2026-88771 authentication/log-poisoning pivots, `sec_monitor`, staging artifacts, payload hashes, command-obfuscation pivots, and reverse-shell/payload/exfiltration infrastructure.
 - Arctic Wolf Labs: secondary hunting set for `/var/1.py`, `/var/tmp/.nsmon`, `nsmon.pl`, cron persistence, high-port listeners, and payload retrieval/execution behavior.
@@ -482,6 +483,14 @@ https://pitscaler.com/netscaler-iocs/
 https://www.poppelgaard.com/cve-2026-88771-through-cve-2026-88778-what-you-should-know-and-how-to-fix-your-netscaler-adc-netscaler-gateway
 
 The script uses PitScaler and Poppelgaard as public IOC cross-references and for October SAML issue context, including `213.209.159.55`, `/v`, `/t/`, nsaaad crash pivots, the `pyrlnk.cc` / `pylrk.cc` spelling conflict, Sliver delivery pivots, Rapid7-referenced `/vpn/c` / `.ctxs.receiver` observations, Corelight reverse-shell/exfiltration pivots, `nsepa.deb` / `vp_probe_nonexist` probes, `NO_AUTH`, and additional marker-file checks.
+
+### SOCRadar
+
+**NetScaler C2: CVE-2026-88771 Exploitation Operation**
+
+https://socradar.io/blog/netscaler-c2-cve-2026-88771-exploitation/
+
+The script uses SOCRadar reporting for NetScaler C2 infrastructure and behavior, including `45.143.130.195`, HTTP on TCP/8899, DNS OOB beacons, `/tmp/.nsagent`, `/s/<bid>`, `/a/<bid>`, `/p/<bid>`, `/c/<bid>`, `/r/<bid>`, exact injection strings, additional unauthenticated injection endpoints, and SHA-256 hashes for the reported toolkit files.
 
 ### Truesec
 

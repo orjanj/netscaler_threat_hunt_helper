@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7 - 2026-10-07
+
+- Added SOCRadar NetScaler C2 source coverage for CVE-2026-88771 exploitation automation.
+- Added SOCRadar network IOC `45.143.130.195` for NetScaler C2 HTTP on TCP/8899 and DNS OOB beaconing on port 53.
+- Added SOCRadar toolkit SHA-256 IOCs for `run.sh`, `targets.py`, `probe.py`, `exploit.py`, `c2_server.py`, and `pollctl.py`.
+- Added SOCRadar behavioral/file pivots including `/tmp/.nsagent`, `/s/<bid>`, `/a/<bid>`, `/p/<bid>?h=<hex_hostname>&u=<hex_username>&src=agent`, `/c/<bid>`, `/r/<bid>?d=<hex>`, `pitboss NSPPE-00;`, `/s/<bid>|sh`, and `;# unexpectedly died`.
+- Added SOCRadar injection endpoint coverage for `/nitro/v1/config/login`, `/nitro/v1/config/login?action=login`, `/nf/auth/getAuthenticationRequirements.do`, `/vpn/index.html`, and `/logon/LogonPoint/index.html`.
+- Bumped script version to 1.7.
+
 ## 1.6 - 2026-10-07
 
 - Added source coverage for CERT-EU, Elastic detection rules, GreyNoise, TENEX, and Thomas Poppelgaard's NetScaler timeline/checker notes.
