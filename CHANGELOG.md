@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.6 - 2026-10-07
+
+- Added source coverage for CERT-EU, Elastic detection rules, GreyNoise, TENEX, and Thomas Poppelgaard's NetScaler timeline/checker notes.
+- Added network IOCs: `78.128.113.10`, `194.26.29.88`, `138.199.200.90`, `158.94.209.12`, `68.178.160.183`, `5.188.206.226`, `instances.httpworkbench.com`, `echvista.com`, and `gsocket.io`.
+- Added web/probe path IOCs: `/logon/LogonPoint/tmindex.html`, `/epa/scripts/linux/nsepa.deb`, and `vp_probe_nonexist`; expanded script/log coverage for the existing `/nf/auth/doAuthentication.do` pivot.
+- Added exploit marker and artifact file IOCs: `/var/vpn/bookmark/nx_verify.html`, `/netscaler/ns_gui/vpn/nx_verify.html`, `/netscaler/ns_gui/vpn/id009.txt`, `/netscaler/ns_gui/vpn/rce.txt`, `/tmp/v`, `/var/tmp/v`, `/tmp/watchTowr`, `/var/tmp/wtw888`, `/var/tmp/boom`, `/var/tmp/sh`, `/netscaler/ns_gui/admin_ui/e.txt`, `/netscaler/ns_gui/admin_ui/log.txt`, and `/lula`.
+- Added Platypus post-exploitation IOCs: `/var/core/.ns-cache/client.crt`, `/var/core/.ns-cache/client.key`, `system-health`, `health-monitor`, `healthd`, `gs-netcat`, `_platypus-mesh._tcp`, and `platypus-ingress`; expanded script/file-path coverage for the existing `/var/python/bin/customsnmpd` and `application/x-protobuf-platypus-v2` pivots.
+- Added log-pattern IOCs for generic `pitboss` shell metacharacters or URL-encoded shell syntax, `NSPPE-00`, `NO_AUTH`, generalized `update_result_*.tgz` matching, `admin_ui/(e|log).txt`, `nx_verify.html`, `wtw*`, `watchTowr`, `uid=0(root)`, `PD9...` PHP payload prefixes, `eval(gzinflate|base64_decode|$_*)`, and `gzinflate(`.
+- Added explicit Corelight/PitScaler/Poppelgaard notes for `194.26.29.88` reverse-shell activity and `138.199.200.90` exfiltration activity.
+
 ## 1.5 - 2026-10-07
 
 - Checked eSentire TRU, Nextron Systems, Fortra Emerging Threats, PitScaler, Unit 42, and watchTowr reporting for additional public indicators.
