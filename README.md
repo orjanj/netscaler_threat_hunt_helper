@@ -75,7 +75,7 @@ This is a threat-hunting helper, not a compromise verdict engine.
 - The script does not patch, delete files, kill processes, restart services, reboot, modify NetScaler configuration, exploit vulnerabilities, validate vulnerabilities by sending malicious traffic, or automatically declare a device compromised or clean.
 - The tool does not inspect memory/core dumps, automatically unpack every support-bundle/archive format, replace NetScaler Console IOC scanning, or replace a forensic or incident-response engagement.
 
-The indicator set and hunting logic in version **1.3** were reviewed against public reporting available on **2026-10-03**. The campaign is evolving; always compare this repository with the latest Citrix advisory and current incident-response reporting before treating the built-in IOC set as complete.
+The indicator set and hunting logic in version **1.5** were reviewed against public reporting available on **2026-10-07**. The campaign is evolving; always compare this repository with the latest Citrix advisory and current incident-response reporting before treating the built-in IOC set as complete.
 
 ## Requirements
 
@@ -367,16 +367,19 @@ Do not publish raw reports without reviewing and sanitizing them first.
 
 ## Coverage summary
 
-The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-04**.
+The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-07**.
 
 - Citrix / NetScaler: affected product context, vulnerability preconditions, SAML applicability checks, and remediation guidance.
 - Citrix CTX697174: read-only search for SAML SP/IdP configuration preconditions for CVE-2026-88779; patch/build verification and exploitation detection remain manual/out of scope.
 - GTIG / Mandiant: DTLS/NSPPE log pivots, Apache/PHP manipulation, WHIPSHOT/SLAPSHOT-related pivots, SUID/SGID checks, suspicious VPN paths, and network indicators.
 - Palo Alto Networks Unit 42: pre-disclosure infrastructure, web-shell paths, anomalous `GetUserName` activity, `.deb` web-shell filenames, SHA-256 indicators, fingerprinting URLs, log-poisoning pivots, Apache alias pivots, and web-shell command behavior.
+- eSentire TRU: four-cluster October 6 activity including `nsgtrust.deb`, additional exploitation sources, Platypus delivery through `entretiensol.com`, Python reverse-shell activity, and new SHA-256 indicators.
+- Nextron Systems: expanded THOR detection coverage context, including post-exploitation and web-shell behavior detection notes.
+- Fortra Emerging Threats: October 6 Core Impact module context for `/p/u/doLogon.do`, delayed `ns_monuploadd_err.pl` execution, and unauthenticated coverage updates.
 - Beazley Security Labs / GreyNoise / Lupovis: exploitation/scanning IPs, DNS callback pivots, public PoC markers, second-wave SAML/log-injection delivery and callback pivots, Sliver payload hashes, and the GreyNoise `.ctxs.receiver` web-shell hash.
 - LevelBlue / SpiderLabs: CVE-2026-88771 authentication/log-poisoning pivots, `sec_monitor`, staging artifacts, payload hashes, command-obfuscation pivots, and reverse-shell/payload/exfiltration infrastructure.
 - Arctic Wolf Labs: secondary hunting set for `/var/1.py`, `/var/tmp/.nsmon`, `nsmon.pl`, cron persistence, high-port listeners, and payload retrieval/execution behavior.
-- PitScaler: public IOC compilation and October 2/3 SAML issue context, including contested `pyrlnk.cc` / `pylrk.cc` spellings and nsaaad crash pivots.
+- PitScaler: public IOC compilation and October SAML issue context, including contested `pyrlnk.cc` / `pylrk.cc` spellings, CVE-2026-88779 notes, nsaaad crash pivots, reported config/private-key dump behavior, and the dedicated October 7 IOC-table updates.
 
 ## Indicator reference
 
@@ -448,8 +451,17 @@ The script uses Beazley Security Labs' consolidated public indicators for GreyNo
 **PitScaler - Citrix NetScaler Zero-Day Crisis**
 
 https://pitscaler.com/
+https://pitscaler.com/netscaler-iocs/
 
-The script uses PitScaler as a public IOC cross-reference and for October 2/3 SAML issue context, including `213.209.159.55`, `/v`, `/t/`, nsaaad crash pivots, and the `pyrlnk.cc` / `pylrk.cc` spelling conflict.
+The script uses PitScaler as a public IOC cross-reference and for October SAML issue context, including `213.209.159.55`, `/v`, `/t/`, nsaaad crash pivots, the `pyrlnk.cc` / `pylrk.cc` spelling conflict, Sliver delivery pivots, and Rapid7-referenced `/vpn/c` / `.ctxs.receiver` observations.
+
+### Truesec
+
+**Multiple Critical Vulnerabilities in Citrix NetScaler ADC and NetScaler Gateway**
+
+https://www.truesec.com/hub/blog/multiple-critical-vulnerabilities-in-citrix-netscaler-adc-and-gateway
+
+The script already covered Truesec's three public potential C2 IPs through overlapping Unit 42 and eSentire reporting: `104.248.244.66`, `139.180.152.138`, and `77.83.199.39`.
 
 ### Citrix SAML guidance
 
@@ -511,6 +523,10 @@ The script uses the published observations as a secondary hunting set for:
 CISA alert confirming global active exploitation:
 
 https://www.cisa.gov/news-events/alerts/2026/09/27/critical-zero-day-vulnerabilities-exploited-citrix-netscaler-adc-gateway
+
+NASCUS mirror of CISA cybersecurity alerts:
+
+https://www.nascus.org/federal-agencies/cisa-resources/cybersecurity-alerts/
 
 NetScaler Console IOC documentation:
 

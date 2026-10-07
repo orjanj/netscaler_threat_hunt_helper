@@ -2,7 +2,7 @@
 # NetScaler CTX697096 Threat Hunt Helper
 # Defensive/read-only hunting for CVE-2026-88771 / CVE-2026-88772 / CVE-2026-88779 activity and related post-exploitation.
 #
-# Sources used for indicators and hunt logic (verified 2026-10-03):
+# Sources used for indicators and hunt logic (verified 2026-10-07):
 #   - Citrix CTX697096 security bulletin:
 #     https://support.citrix.com/external/article/CTX697096
 #   - Citrix CTX697174 security bulletin (CVE-2026-88779):
@@ -11,12 +11,21 @@
 #     https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
 #   - Palo Alto Networks Unit 42:
 #     https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
+#   - eSentire TRU:
+#     https://www.esentire.com/blog/more-shells-than-a-seafood-buffet-tracking-citrix-netscaler-exploitation-activities-cve-2026-88771
+#   - Nextron Systems:
+#     https://www.nextron-systems.com/2026/10/06/update-on-citrix-netscaler-cve-2026-88771-and-cve-2026-88772-expanded-thor-detection-coverage/
+#   - Fortra Emerging Threats:
+#     https://www.fortra.com/security/emerging-threats/netscaler-cve-2026-88771-improper-input-validation-and-cve-2026-88772
 #   - Beazley Security Labs BSL-A1216:
 #     https://labs.beazley.security/advisories/BSL-A1216
 #   - PitScaler public briefing / IOC compilation:
 #     https://pitscaler.com/
+#     https://pitscaler.com/netscaler-iocs/
 #   - watchTowr Labs technical analysis:
 #     https://labs.watchtowr.com/
+#     https://watchtowr.com/intelligence/citrix-netscaler-denial-of-service-memory-overflow-cve-2026-88779/
+#     https://watchtowr.com/intelligence/citrix-netscaler-cve-2026-88779-faq/
 #   - LevelBlue SpiderLabs:
 #     https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
 #   - Arctic Wolf Labs Pack Alert (observed post-exploitation indicators, secondary set):
@@ -39,7 +48,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.4"
+VERSION="1.5"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -108,6 +117,15 @@ IOC_IPS=(
   "51.158.203.95"      # Beazley exploit delivery
   "185.244.213.112"    # Beazley exploit delivery
   "158.94.211.205"     # Beazley exfil receiver
+  "149.104.78.208"     # Rapid7 / PitScaler earliest observed config-archive exploitation source
+  "34.90.151.231"      # eSentire reconnaissance / webshell delivery
+  "144.172.108.78"     # eSentire exploitation source
+  "185.156.46.162"     # eSentire exploitation source / GreyNoise tagged
+  "153.75.82.220"      # eSentire / Arctic Wolf shell payload host
+  "216.203.21.233"     # eSentire exploitation source / GreyNoise tagged
+  "185.243.41.247"     # eSentire campaign infrastructure
+  "81.94.239.8"        # PitScaler / Poppelgaard config and private-key exfil receiver on TCP/8877
+  "138.199.60.5"       # PitScaler / Poppelgaard CVE-2026-88779 SAML crash-payload source
 )
 
 IOC_DOMAINS=(
@@ -118,6 +136,7 @@ IOC_DOMAINS=(
   "www.pyrlnk.cc"      # Beazley hardcoded Sliver C2
   "pylrk.cc"           # Beazley/Poppelgaard reported second-wave payload delivery spelling
   "f.pylrk.cc"         # Beazley Sliver payload delivery
+  "entretiensol.com"   # eSentire / Arctic Wolf Platypus C2 and artifact host
 )
 
 # Host/file indicators.
@@ -128,12 +147,17 @@ IOC_PATHS=(
   "/vpn/scripts/linux/nsgsupport.deb"
   "/vpn/scripts/linux/nsgpackage64.deb"
   "/vpn/scripts/linux/nsgbuild.deb"
+  "/vpn/scripts/linux/nsgtrust.deb"
   "/logon/LogonPoint/Authentication/GetUserName"
   "/var/netscaler/logon/LogonPoint/custom/.ctxs.receiver"
+  "/var/netscaler/logon/LogonPoint/custom/.slap.receiver"
+  "/var/netscaler/logon/LogonPoint/custom/receiver.deb"
   "/var/netscaler/gui/vpn/scripts/linux/nsgclient.sig"
   "/var/netscaler/gui/vpn/scripts/linux/e6ee7c85.sig"
+  "/var/netscaler/gui/vpn/scripts/linux/1bd8a664.sig"
   "/netscaler/ns_gui/vpn/scripts/linux/nsgclient.sig"
   "/netscaler/ns_gui/vpn/scripts/linux/e6ee7c85.sig"
+  "/netscaler/ns_gui/vpn/c88771.json"
   "/vpn/media/nsgclient.ico"
   "/var/netscaler/logon/LogonPoint/.local_journal"
   "/tmp/.uxdport"
@@ -152,6 +176,18 @@ IOC_PATHS=(
   "/var/tmp/.slap-diag.txt"
   "/var/tmp/.s2loot"
   "/tmp/.slap.cron"
+  "/var/tmp/.host"
+  "/private/var/tmp/.host"
+  "/nsconfig/.nsl"
+  "/var/nslog/.nsl"
+  "/var/core/.ns-cache"
+  "/netscaler.local"
+  "/.x"
+  "/vpn/c"
+  "/var/tmp/.nsmon/nsmon.pl"
+  "/var/tmp/.nsmon/.cfg"
+  "/var/tmp/.nsmon/.state"
+  "/var/tmp/.s"
 )
 
 # Known hashes from Unit 42 / LevelBlue.
@@ -166,6 +202,12 @@ IOC_HASHES["c2f5532f3209dce0bd30ead47a2616a74ce8170324ef68dfd59acac3f5f1da34"]="
 IOC_HASHES["0188b0eba4b01c4fb838df9d1d76c76d7f1dc22897e25161975b606c134c1027"]="Beazley/PitScaler Sliver C2 implant"
 IOC_HASHES["b9b0a4380db462c706597bd3e6a08d4d99fcbbf0919d63eb99b488d396c8ce63"]="PitScaler second-wave Perl payload"
 IOC_HASHES["72cff13fcba75504485e94fa6bfc5e9363e860f49efdba68feb583148eec38f2"]="Poppelgaard SAML-attack kit dropper"
+IOC_HASHES["5ea5ea61e9062822bee3f66ef5ff47c217178d9e31936ad6daf10c5dfae44d12"]="eSentire PHP webshell .ico variant"
+IOC_HASHES["7add390ceee4a1373211b3e340451b34f08965fc4d805f94c9b8cebdc0775774"]="eSentire nsgtrust.deb PHP webshell"
+IOC_HASHES["57f9f30c50240fd48d761de7961a430cdebf2c084a36bc76d376a1ce8e6dfa9d"]="eSentire / Arctic Wolf Platypus x stager"
+IOC_HASHES["927c7fbef2e620c1ce482c3ed67ebf53da97693c1d6c7552c77aec84ba982cf8"]="eSentire / Arctic Wolf Platypus bootstrap script"
+IOC_HASHES["c98aee75c5e199c9b5527984ce48675d665963f7cab8ce9f2e82465de6b58727"]="eSentire / TENEX Platypus agent FreeBSD amd64"
+IOC_HASHES["ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1"]="Rapid7 / PitScaler .ctxs.receiver webshell sample"
 
 # Strings / behavior pivots. These are intentionally broader than exact IOCs.
 LOG_PATTERNS=(
@@ -197,11 +239,17 @@ LOG_PATTERNS=(
   "/vpn/media/"
   "/vpn/scripts/"
   "/nf/auth/doAuthentication\.do"
+  "/p/u/doAuthentication\.do"
+  "/p/u/doLogon\.do"
+  "/cgi/login"
+  "/cgi/samlauth"
+  "/saml/login"
   "/logon/LogonPoint/Authentication/GetUserName"
   "GetUserName"
   "receiver.min.css"
   "receiver\.min\.[[:xdigit:]]+\.css"
   "LogonUISimple.html.style.min.css"
+  "LogonUISimple\.html\.style\.min\.[[:xdigit:]]+\.css"
   "sec_monitor"
   '\$\{IFS\}'
   "customsnmpd"
@@ -231,6 +279,31 @@ LOG_PATTERNS=(
   "All monitored processes have exited, rebooting"
   "nsaaad-.*\.gz"
   "Pylrkfbsd"
+  "nsgtrust\.deb"
+  "entretiensol\.com"
+  "platypus-agent/public-ip-probe"
+  "application/x-protobuf-platypus-v2"
+  "PLATYPUS_INSTALL_TOKEN"
+  "plt_wqmnjp5jusrcpzicqa2t\.gg3s7yppdptle5dyefxj"
+  "/v1/artifacts/freebsd/amd64/latest"
+  "/api/v1/agents/enroll"
+  "/api/v1/agent/link"
+  "/xd7h/x"
+  "/xd7h/nsmon\.pl"
+  "/download/x\.sh"
+  "45\.141\.21\.130/443"
+  "81\.94\.239\.8:8877"
+  "curl[[:space:]].*--data-binary.*:8877"
+  "===CONF:"
+  "===KEY:"
+  "BEGIN[[:space:]]+(RSA |EC |OPENSSH )?PRIVATE KEY"
+  "/vpn/c"
+  "scanner-probe"
+  "probe/1"
+  "PoCbit"
+  "/HaKi2ufpiQ8AeVTZ/host"
+  "citrix3\.bad"
+  "IMPLANT_CAPABILITY_TUNNEL_TERMINAL_V1"
 )
 
 WEBSHELL_PATTERNS=(
@@ -259,8 +332,11 @@ WEBSHELL_PATTERNS=(
   "\.slap\.receiver"
   "receiver\.deb"
   "receiver\.v2\.min"
+  "LogonUISimple\.html\.style\.min\.css"
+  "LogonUISimple\.html\.style\.min\.[[:xdigit:]]+\.css"
   "httpd\.conf\.slap\.bak"
   "Pylrkfbsd"
+  "HTTP_NSC_CLI"
 )
 
 emit_stream() {
@@ -654,7 +730,7 @@ hunt_hashes_offline() {
     [[ "$NO_REPORT" != "1" && "$f" == "$REPORT" ]] && continue
     # Limit to plausible payload/config artifacts to avoid hashing gigantic dumps.
     case "$f" in
-      *.deb|*.sig|*.php|*.pl|*.py|*.sh|*.tgz|*.html|*.js|*.txt|*.conf)
+      *.deb|*.sig|*.php|*.pl|*.py|*.sh|*.tgz|*.html|*.js|*.txt|*.conf|*/.x|*/x|*/.host|*/host|*/nsmon.pl)
         h=$(hash_file "$f" || true)
         ((count+=1))
         if [[ -n "$h" && -n "${IOC_HASHES[$h]+x}" ]]; then

@@ -1,6 +1,16 @@
 # Changelog
 
+## 1.5 - 2026-10-07
+
+- Checked eSentire TRU, Nextron Systems, Fortra Emerging Threats, PitScaler, Unit 42, and watchTowr reporting for additional public indicators.
+- Added eSentire cluster indicators for `nsgtrust.deb`, `entretiensol.com`, Platypus behavior, related IPs, and SHA-256 values.
+- Added PitScaler/Rapid7 public IOC pivots including `149.104.78.208`, `/vpn/c`, `.ctxs.receiver` hash `ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1`, and Sliver delivery markers.
+- Added PitScaler/Poppelgaard pivots for CVE-2026-88779 SAML probing/crash activity and the reported config/private-key dump to `81.94.239.8:8877`.
+- Added Fortra Core Impact context for `/p/u/doAuthentication.do`, delayed `ns_monuploadd_err.pl` execution, and root agent deployment behavior.
+- Bumped script version to 1.5.
+
 ## 1.4 - 2026-10-04
+
 - Added live and offline read-only checks for the Citrix-documented SAML SP/IdP configuration precondition for CVE-2026-88779 (CTX697174).
 - Clarified that configuration matches are applicability leads only; build/patch status and exploitation are not determined by this check.
 - Added CTX697174 source and usage guidance.

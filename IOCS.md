@@ -11,8 +11,14 @@ The source labels in this file refer to the public reporting below.
 - Citrix SAML guidance: https://community.citrix.com/techzone-blogs/110_security-updates/security-update-guidance-for-netscaler-saml-authentication-deployments/
 - GTIG / Mandiant: https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
 - Palo Alto Networks Unit 42: https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
+- eSentire TRU: https://www.esentire.com/blog/more-shells-than-a-seafood-buffet-tracking-citrix-netscaler-exploitation-activities-cve-2026-88771
+- Nextron Systems: https://www.nextron-systems.com/2026/10/06/update-on-citrix-netscaler-cve-2026-88771-and-cve-2026-88772-expanded-thor-detection-coverage/
+- Fortra Emerging Threats: https://www.fortra.com/security/emerging-threats/netscaler-cve-2026-88771-improper-input-validation-and-cve-2026-88772
 - Beazley Security Labs BSL-A1216: https://labs.beazley.security/advisories/BSL-A1216
 - PitScaler public briefing / IOC compilation: https://pitscaler.com/
+- PitScaler public IOC table: https://pitscaler.com/netscaler-iocs/
+- watchTowr CVE-2026-88779 rapid reaction: https://watchtowr.com/intelligence/citrix-netscaler-denial-of-service-memory-overflow-cve-2026-88779/
+- watchTowr CVE-2026-88779 FAQ: https://watchtowr.com/intelligence/citrix-netscaler-cve-2026-88779-faq/
 - LevelBlue SpiderLabs: https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
 - Arctic Wolf Labs Pack Alert: https://www.reddit.com/r/u_ArcticWolf_Official/comments/1wudni7/pack_alert_september_30_2026_arctic_wolf_labs/
 - Wolf Tools Pack Alert: https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
@@ -95,7 +101,18 @@ Sources:
 51.158.203.95
 185.244.213.112
 158.94.211.205
+149.104.78.208
+34.90.151.231
+144.172.108.78
+185.156.46.162
+153.75.82.220
+216.203.21.233
+185.243.41.247
+81.94.239.8
+138.199.60.5
 ```
+
+`81.94.239.8` is reported by PitScaler/Poppelgaard as a config/private-key exfiltration receiver on TCP/8877. `138.199.60.5` is reported as a CVE-2026-88779 SAML crash-payload source. Treat both as hunting pivots and validate direction, timing, and appliance role before acting.
 
 ## Domain Indicators
 
@@ -112,6 +129,7 @@ pyrlnk.cc
 www.pyrlnk.cc
 pylrk.cc
 f.pylrk.cc
+entretiensol.com
 ```
 
 ## File And Path Indicators
@@ -132,12 +150,17 @@ Sources:
 /vpn/scripts/linux/nsgsupport.deb
 /vpn/scripts/linux/nsgpackage64.deb
 /vpn/scripts/linux/nsgbuild.deb
+/vpn/scripts/linux/nsgtrust.deb
 /logon/LogonPoint/Authentication/GetUserName
 /var/netscaler/logon/LogonPoint/custom/.ctxs.receiver
+/var/netscaler/logon/LogonPoint/custom/.slap.receiver
+/var/netscaler/logon/LogonPoint/custom/receiver.deb
 /var/netscaler/gui/vpn/scripts/linux/nsgclient.sig
 /var/netscaler/gui/vpn/scripts/linux/e6ee7c85.sig
+/var/netscaler/gui/vpn/scripts/linux/1bd8a664.sig
 /netscaler/ns_gui/vpn/scripts/linux/nsgclient.sig
 /netscaler/ns_gui/vpn/scripts/linux/e6ee7c85.sig
+/netscaler/ns_gui/vpn/c88771.json
 /vpn/media/nsgclient.ico
 /var/netscaler/logon/LogonPoint/.local_journal
 /tmp/.uxdport
@@ -156,6 +179,18 @@ Sources:
 /var/tmp/.slap-diag.txt
 /var/tmp/.s2loot
 /tmp/.slap.cron
+/var/tmp/.host
+/private/var/tmp/.host
+/nsconfig/.nsl
+/var/nslog/.nsl
+/var/core/.ns-cache
+/netscaler.local
+/.x
+/vpn/c
+/var/tmp/.nsmon/nsmon.pl
+/var/tmp/.nsmon/.cfg
+/var/tmp/.nsmon/.state
+/var/tmp/.s
 ```
 
 Some of these may be short-lived because observed payloads included cleanup behavior. Missing files therefore do not prove that execution did not occur.
@@ -199,6 +234,24 @@ b9b0a4380db462c706597bd3e6a08d4d99fcbbf0919d63eb99b488d396c8ce63
 
 72cff13fcba75504485e94fa6bfc5e9363e860f49efdba68feb583148eec38f2
   Poppelgaard / PitScaler - SAML-attack kit dropper
+
+5ea5ea61e9062822bee3f66ef5ff47c217178d9e31936ad6daf10c5dfae44d12
+  eSentire - PHP web shell .ico variant
+
+7add390ceee4a1373211b3e340451b34f08965fc4d805f94c9b8cebdc0775774
+  eSentire - nsgtrust.deb PHP web shell
+
+57f9f30c50240fd48d761de7961a430cdebf2c084a36bc76d376a1ce8e6dfa9d
+  eSentire / Arctic Wolf - Platypus x stager shell script
+
+927c7fbef2e620c1ce482c3ed67ebf53da97693c1d6c7552c77aec84ba982cf8
+  eSentire / Arctic Wolf - Platypus bootstrap script
+
+c98aee75c5e199c9b5527984ce48675d665963f7cab8ce9f2e82465de6b58727
+  eSentire / TENEX - Platypus agent, FreeBSD amd64 build
+
+ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1
+  Rapid7 / PitScaler - .ctxs.receiver web shell sample
 ```
 
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
@@ -256,6 +309,7 @@ Examples include:
 - `pylrk.cc`
 - `213.209.159.55:443/t/`
 - `158.94.211.205:8080`
+- `81.94.239.8:8877`
 - `NSC_TASS`
 - `CsrfToken`
 - `e826d7ddf3c85920`
@@ -263,7 +317,13 @@ Examples include:
 - `Rhfajaf1H992`
 - `/admin_ui/common/css/ns/ui.css`
 - `/vpn/js/rdx/core/lang/rdx_en.json.gz`
+- `/saml/login`
+- `/cgi/samlauth`
+- `/cgi/login`
+- `/p/u/doAuthentication.do`
+- `/p/u/doLogon.do`
 - `receiver.min.<hex>.css`
+- `LogonUISimple.html.style.min.css`
 - `ns_monuploadd_err.pl`
 - `/var/netscaler/.ns_suidcmd`
 - `chmod 6555 /bin/sh`
@@ -278,3 +338,7 @@ Examples include:
 - SAML configuration lines `add authentication samlAction` or `add authentication samlIdPProfile`
 - nsaaad crash/restart lines such as `proc nsaaad`, `maximum number of restarts`, and `All monitored processes have exited, rebooting`
 - second-wave fetch/callback pivots involving `/v`, `f.pylrk.cc`, `webhook.site`, and `dnshook.site`
+- Sliver delivery pivots involving `/HaKi2ufpiQ8AeVTZ/host`, `citrix3.bad`, and `IMPLANT_CAPABILITY_TUNNEL_TERMINAL_V1`
+- eSentire cluster pivots including `nsgtrust.deb`, `entretiensol.com`, Platypus enrollment paths, `platypus-agent/public-ip-probe`, and `application/x-protobuf-platypus-v2`
+- config/private-key dump pivots including `===CONF:`, `===KEY:`, private-key markers, random `.css` files under `LogonPoint`, and `curl --data-binary` to TCP/8877
+- SAML/CVE-2026-88779 hunting pivots including `/saml/login`, `/cgi/samlauth`, `probe/1`, `scanner-probe`, and `nsaaad` crash artifacts
