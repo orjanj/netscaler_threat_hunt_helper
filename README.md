@@ -380,6 +380,7 @@ The script combines indicators and behavioral hunting ideas from public reportin
 - Nextron Systems: expanded THOR detection coverage context, including post-exploitation and web-shell behavior detection notes.
 - Fortra Emerging Threats: October 6 Core Impact module context for `/p/u/doLogon.do`, delayed `ns_monuploadd_err.pl` execution, and unauthenticated coverage updates.
 - SOCRadar: NetScaler C2 infrastructure, toolkit hashes, C2 agent path, HTTP/DNS callback paths, and exact CVE-2026-88771 injection strings.
+- Censys / Decryption Digest: CVE-2026-88771 log-context pivots and CVE-2026-88779 SAML request-size/path hunting pivots.
 - Beazley Security Labs / GreyNoise / Lupovis: exploitation/scanning IPs, DNS callback pivots, public PoC markers, second-wave SAML/log-injection delivery and callback pivots, Sliver payload hashes, and the GreyNoise `.ctxs.receiver` web-shell hash.
 - LevelBlue / SpiderLabs: CVE-2026-88771 authentication/log-poisoning pivots, `sec_monitor`, staging artifacts, payload hashes, command-obfuscation pivots, and reverse-shell/payload/exfiltration infrastructure.
 - Arctic Wolf Labs: secondary hunting set for `/var/1.py`, `/var/tmp/.nsmon`, `nsmon.pl`, cron persistence, high-port listeners, and payload retrieval/execution behavior.
@@ -491,6 +492,18 @@ The script uses PitScaler and Poppelgaard as public IOC cross-references and for
 https://socradar.io/blog/netscaler-c2-cve-2026-88771-exploitation/
 
 The script uses SOCRadar reporting for NetScaler C2 infrastructure and behavior, including `45.143.130.195`, HTTP on TCP/8899, DNS OOB beacons, `/tmp/.nsagent`, `/s/<bid>`, `/a/<bid>`, `/p/<bid>`, `/c/<bid>`, `/r/<bid>`, exact injection strings, additional unauthenticated injection endpoints, and SHA-256 hashes for the reported toolkit files.
+
+### Censys / Decryption Digest
+
+**Sept 28 Advisory: Citrix NetScaler ADC and NetScaler Gateway Zero-Day Remote Code Execution [CVE-2026-88771, CVE-2026-88772]**
+
+https://censys.com/advisory/cve-2026-88771-cve-2026-88772/
+
+**Citrix NetScaler SAML Zero-Day CVE-2026-88779: Patch Before End of Business Today**
+
+https://www.decryptiondigest.com/blog/citrix-netscaler-saml-zero-day-cve-2026-88779-patch
+
+The script uses Censys and Decryption Digest reporting for `AAAD API: sending login req`, `process_kernel_socket`, `/saml/logout`, and large SAML POST request pivots around `/saml/login`, `/saml/logout`, and `/cgi/samlauth`.
 
 ### Truesec
 

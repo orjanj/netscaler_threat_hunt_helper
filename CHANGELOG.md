@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8 - 2026-10-07
+
+- Added Censys log-context pivots `AAAD API: sending login req` and `process_kernel_socket` for CVE-2026-88771 detection artifacts.
+- Added Decryption Digest CVE-2026-88779 SAML hunting pivots for `/saml/logout` and unusually large `Content-Length` values on `/saml/login`, `/saml/logout`, or `/cgi/samlauth` requests.
+- Excluded source-branded watchTowr/`wtw*` artifact strings from active detection coverage.
+- Bumped script version to 1.8.
+
 ## 1.7 - 2026-10-07
 
 - Added SOCRadar NetScaler C2 source coverage for CVE-2026-88771 exploitation automation.

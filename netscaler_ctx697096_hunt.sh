@@ -27,6 +27,10 @@
 #     https://www.fortra.com/security/emerging-threats/netscaler-cve-2026-88771-improper-input-validation-and-cve-2026-88772
 #   - SOCRadar:
 #     https://socradar.io/blog/netscaler-c2-cve-2026-88771-exploitation/
+#   - Censys:
+#     https://censys.com/advisory/cve-2026-88771-cve-2026-88772/
+#   - Decryption Digest:
+#     https://www.decryptiondigest.com/blog/citrix-netscaler-saml-zero-day-cve-2026-88779-patch
 #   - Beazley Security Labs BSL-A1216:
 #     https://labs.beazley.security/advisories/BSL-A1216
 #   - PitScaler public briefing / IOC compilation:
@@ -60,7 +64,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.7"
+VERSION="1.8"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -198,8 +202,6 @@ IOC_PATHS=(
   "/v"
   "/tmp/v"
   "/var/tmp/v"
-  "/tmp/watchTowr"
-  "/var/tmp/wtw888"
   "/var/tmp/boom"
   "/var/tmp/sh"
   "/nsconfig/.slap"
@@ -265,6 +267,8 @@ LOG_PATTERNS=(
   "NOT restarting NSPPE"
   "NSPPE.*exit"
   "orphan rings"
+  "AAAD API: sending login req"
+  "process_kernel_socket"
   "pitboss PPE unexpectedly died"
   "pitboss PPE unexpectedly died NSPPE"
   "pitboss NSPPE-00;"
@@ -305,6 +309,9 @@ LOG_PATTERNS=(
   "/cgi/login"
   "/cgi/samlauth"
   "/saml/login"
+  "/saml/logout"
+  '(/saml/(login|logout)|/cgi/samlauth).*Content-Length:[[:space:]]*(6[5-9][0-9]{3}|[7-9][0-9]{4}|[1-9][0-9]{5,})'
+  'Content-Length:[[:space:]]*(6[5-9][0-9]{3}|[7-9][0-9]{4}|[1-9][0-9]{5,}).*(/saml/(login|logout)|/cgi/samlauth)'
   "/logon/LogonPoint/Authentication/GetUserName"
   "GetUserName"
   "receiver.min.css"
@@ -337,7 +344,6 @@ LOG_PATTERNS=(
   "admin_ui/(e|log)\.txt"
   "nx_verify\.html"
   "wtw[[:alnum:]_.-]*"
-  "watchTowr"
   "uid=0\(root\)"
   "/tmp/v"
   "/var/tmp/v"
