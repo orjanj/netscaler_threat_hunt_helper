@@ -40,6 +40,8 @@
 #     https://www.poppelgaard.com/cve-2026-88771-through-cve-2026-88778-what-you-should-know-and-how-to-fix-your-netscaler-adc-netscaler-gateway
 #   - watchTowr Labs technical analysis:
 #     https://labs.watchtowr.com/
+#     https://watchtowr.com/intelligence/post-exploitation-analysis-artifacts-citrix-netscaler-cve-2026-88771/
+#     https://github.com/watchtowrlabs/citrix-netscaler-cve-2026-88771-iocs
 #     https://watchtowr.com/intelligence/citrix-netscaler-denial-of-service-memory-overflow-cve-2026-88779/
 #     https://watchtowr.com/intelligence/citrix-netscaler-cve-2026-88779-faq/
 #   - LevelBlue SpiderLabs:
@@ -64,7 +66,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.8"
+VERSION="1.9"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -149,6 +151,46 @@ IOC_IPS=(
   "68.178.160.183"     # Poppelgaard community IOC compilation
   "5.188.206.226"      # Poppelgaard community IOC compilation
   "45.143.130.195"     # SOCRadar NetScaler C2 HTTP/DNS listener
+  "54.70.59.128"       # watchTowr post-exploitation source
+  "176.65.148.54"      # watchTowr Sliver C2/staging infrastructure
+  "130.94.106.141"     # watchTowr post-exploitation source
+  "23.234.74.48"       # watchTowr post-exploitation source
+  "52.38.11.186"       # watchTowr post-exploitation source
+  "32.186.46.211"      # watchTowr post-exploitation source
+  "141.98.212.82"      # watchTowr post-exploitation source
+  "165.227.201.112"    # watchTowr post-exploitation source
+  "165.22.104.177"     # watchTowr post-exploitation source
+  "66.42.100.63"       # watchTowr post-exploitation source
+  "104.234.140.132"    # watchTowr post-exploitation source
+  "104.234.140.124"    # watchTowr post-exploitation source
+  "104.168.34.24"      # watchTowr post-exploitation source
+  "185.231.33.46"      # watchTowr post-exploitation source
+  "130.94.20.222"      # watchTowr post-exploitation source
+  "45.249.89.172"      # watchTowr post-exploitation source
+  "172.247.44.85"      # watchTowr post-exploitation source
+  "173.231.39.244"     # watchTowr post-exploitation source
+  "37.19.221.171"      # watchTowr post-exploitation source
+  "52.39.16.162"       # watchTowr post-exploitation source
+  "44.252.255.141"     # watchTowr post-exploitation source
+  "45.143.167.96"      # watchTowr post-exploitation source
+  "165.227.228.21"     # watchTowr post-exploitation source
+  "64.227.181.23"      # watchTowr post-exploitation source
+  "142.93.205.229"     # watchTowr post-exploitation source
+  "165.22.100.102"     # watchTowr post-exploitation source
+  "206.189.107.84"     # watchTowr post-exploitation source
+  "139.59.86.242"      # watchTowr post-exploitation source
+  "159.203.33.46"      # watchTowr post-exploitation source
+  "170.64.143.206"     # watchTowr post-exploitation source
+  "170.64.176.26"      # watchTowr post-exploitation source
+  "5.83.144.60"        # watchTowr post-exploitation source
+  "45.61.144.161"      # watchTowr post-exploitation source
+  "45.225.135.18"      # watchTowr post-exploitation source
+  "78.128.114.22"      # watchTowr post-exploitation source
+  "159.26.112.64"      # watchTowr post-exploitation source
+  "185.135.77.63"      # watchTowr post-exploitation source
+  "212.86.125.40"      # watchTowr post-exploitation source
+  "198.13.159.233"     # watchTowr post-exploitation source
+  "45.12.239.191"      # watchTowr post-exploitation source
 )
 
 IOC_DOMAINS=(
@@ -163,6 +205,11 @@ IOC_DOMAINS=(
   "instances.httpworkbench.com" # Lupovis / Poppelgaard DNS exfiltration subdomain pattern
   "echvista.com"       # PitScaler / Poppelgaard public IOC compilation
   "gsocket.io"         # Poppelgaard second-wave reverse-shell/C2 pivot
+  "ctrxsrv.com"        # watchTowr purpose-built OOB callback domain
+  "1433.eu.org"        # watchTowr ddns.1433.eu.org OOB callback domain
+  "staticship.org"     # watchTowr css.staticship.org OOB callback domain
+  "oast.fun"           # watchTowr OAST callback service
+  "smartdnslog.com"    # watchTowr OOB callback service
 )
 
 # Host/file indicators.
@@ -202,6 +249,11 @@ IOC_PATHS=(
   "/v"
   "/tmp/v"
   "/var/tmp/v"
+  "/var/tmp/wtw888"
+  "/var/tmp/cve88771"
+  "/var/tmp/cve88771_round2"
+  "/var/tmp/.sec.txt"
+  "/var/tmp/.cred.txt"
   "/var/tmp/boom"
   "/var/tmp/sh"
   "/nsconfig/.slap"
@@ -221,11 +273,21 @@ IOC_PATHS=(
   "/var/core/.ns-cache/client.key"
   "/netscaler.local"
   "/var/python/bin/customsnmpd"
+  "/var/netscaler/logon/LogonPoint/ns_ctx.html"
+  "/var/netscaler/logon/LogonPoint/logon.js"
+  "/var/netscaler/logon/LogonPoint/ns0e82mz.txt"
   "/netscaler/ns_gui/admin_ui/e.txt"
   "/netscaler/ns_gui/admin_ui/log.txt"
+  "/netscaler/ns_gui/id009.txt"
   "/.x"
   "/lula"
   "/vpn/c"
+  "/var/1"
+  "/var/walk"
+  "/usr/bin/walk"
+  "/var/vpn/ns_helper"
+  "/nsconfig/.ns_helper/ns_helper"
+  "/tmp/sessions.log.d"
   "/epa/scripts/linux/nsepa.deb"
   "/tmp/.nsagent"
   "/var/tmp/.nsmon/nsmon.pl"
@@ -258,6 +320,11 @@ IOC_HASHES["69a34c591eaaa2cbecaeed10c303b8dcf04c846b8408491da5452b9cfc93f686"]="
 IOC_HASHES["a3e26053975daa0a12a4848ce9533e5c439617cd7f69851347be2061999b4cd4"]="SOCRadar NetScaler C2 exploit.py"
 IOC_HASHES["a9142989d912098856e58f2c74c2266e39150d50bc59722f915dade1ddfddf4a"]="SOCRadar NetScaler C2 c2_server.py"
 IOC_HASHES["f9e06d412dee96d98db4d4588f0012af859cc11caaae3e130697f282447cf07f"]="SOCRadar NetScaler C2 pollctl.py"
+IOC_HASHES["6c8929c6bc1ad59c4742d2671b797a08e36b8f3ec6ab479afc08bec62a3c2657"]="watchTowr Sliver ns_helper implant"
+IOC_HASHES["0e9e1a1644c0f445fe20735f6ab56e0ba61c9e51d76c34e14e729a9db9d78bf1"]="watchTowr Perl dropper update_c08937.pl"
+IOC_HASHES["c0ebf54be0aeddd5b953df8a60bff7fc88d571e948405c24f6b5d6c1aa17558a"]="watchTowr embedded .local_journal PHP webshell"
+IOC_HASHES["6caf647ec5a440739b7ef073ccf30463ace79a17c9195eb528ea826c4c0000c4"]="watchTowr SSH backdoor dropper /var/1"
+IOC_HASHES["530fb1522dc0a023bc3412d576c52a553933d302ed445475501acf8e7cfea46b"]="watchTowr SSH backdoor binary walk"
 
 # Strings / behavior pivots. These are intentionally broader than exact IOCs.
 LOG_PATTERNS=(
@@ -290,6 +357,14 @@ LOG_PATTERNS=(
   "gsocket\.io"
   "pyrlnk\.cc"
   "pylrk\.cc"
+  "ctrxsrv\.com"
+  "ddns\.1433\.eu\.org"
+  "css\.staticship\.org"
+  "oast\.fun"
+  "smartdnslog\.com"
+  "176\.65\.148\.54"
+  "176\.65\.148\.54:8080/ns_helper"
+  '^/(bundles|scripts|script|javascripts|js)(/(bundles|scripts|script|javascripts|js)){0,5}/(route|app|app\.min|array)\.php(\?[A-Za-z]=[A-Za-z0-9]+)?$'
   "213\.209\.159\.55:443/t/"
   "158\.94\.211\.205:8080"
   "/admin_ui/common/css/ns/ui\.css"
@@ -318,7 +393,9 @@ LOG_PATTERNS=(
   "receiver\.min\.[[:xdigit:]]+\.css"
   "LogonUISimple.html.style.min.css"
   "LogonUISimple\.html\.style\.min\.[[:xdigit:]]+\.css"
+  "POST .*\.css"
   "sec_monitor"
+  "gw_health"
   "NO_AUTH"
   '\$\{IFS\}'
   "customsnmpd"
@@ -344,6 +421,20 @@ LOG_PATTERNS=(
   "admin_ui/(e|log)\.txt"
   "nx_verify\.html"
   "wtw[[:alnum:]_.-]*"
+  "cve88771(_round2)?"
+  "ns_ctx\.html"
+  "logon\.js"
+  "ns0e82mz\.txt"
+  "x\.php"
+  "\.x\.php"
+  "health\.php"
+  "pwn\.txt"
+  "p\.txt"
+  "ns_helper"
+  "sessions\.log\.d"
+  "walk"
+  "support1"
+  "hGLHNG47ISWLin1Ik3o2KzgPLphQ3mjkGdp6DSeAiLo"
   "uid=0\(root\)"
   "/tmp/v"
   "/var/tmp/v"
@@ -1016,7 +1107,7 @@ live_shell_permissions() {
 
 live_processes() {
   section "LIVE: processes and IPC artifacts"
-  list_processes | grep -Ei 'python.*(uxdport|uxdlock|base64)|nohup|nsmon|update_c08937|main\.py|customsnmpd|\.local_journal|nsg(client|installer)' | grep -v grep | emit_stream || true
+  list_processes | grep -Ei 'python.*(uxdport|uxdlock|base64)|nohup|nsmon|update_c08937|main\.py|customsnmpd|\.local_journal|ns_helper|/var/walk|/usr/bin/walk|nsg(client|installer)' | grep -v grep | emit_stream || true
   for p in /tmp/.uxdport /tmp/.uxdlock /var/tmp/.nsmon; do
     if [[ -e "$p" ]]; then
       log ALERT "Found IPC/persistence artifact: $p"
@@ -1032,7 +1123,7 @@ live_cron() {
   for f in /etc/crontab /nsconfig/crontab; do
     [[ -r "$f" ]] || continue
     log INFO "Checking $f"
-    nl -ba "$f" 2>/dev/null | grep -Ei 'nsmon|/var/tmp/\.nsmon|curl|wget|python|perl|/vpn/scripts|/var/1\.py' | emit_stream || true
+    nl -ba "$f" 2>/dev/null | grep -Ei 'nsmon|/var/tmp/\.nsmon|curl|wget|python|perl|walk|ns_helper|/vpn/scripts|/var/1(\.py)?' | emit_stream || true
   done
 }
 
@@ -1041,7 +1132,7 @@ live_accounts_config() {
   for f in /flash/nsconfig/ns.conf /nsconfig/ns.conf; do
     [[ -r "$f" ]] || continue
     log INFO "Checking $f"
-    grep -Ein 'sec_monitor|add system user|bind system user.*superuser|update_result_3567cs|\.local_journal|receiver\.min' "$f" 2>/dev/null | emit_stream || true
+    grep -Ein 'sec_monitor|gw_health|add system user|bind system user.*superuser|update_result_3567cs|\.local_journal|receiver\.min' "$f" 2>/dev/null | emit_stream || true
     if grep -Eiq 'sec_monitor' "$f" 2>/dev/null; then
       log ALERT "Found sec_monitor in $f."
     fi
@@ -1089,11 +1180,11 @@ live_hash_candidates() {
     return
   fi
   local d f h found=0
-  for d in /var/netscaler/gui/vpn/scripts/linux /netscaler/ns_gui/vpn/scripts/linux /var/netscaler/logon/LogonPoint /tmp /var/tmp; do
+  for d in /var/netscaler/gui/vpn/scripts/linux /netscaler/ns_gui/vpn/scripts/linux /var/netscaler/logon/LogonPoint /var/vpn /nsconfig/.ns_helper /tmp /var/tmp; do
     [[ -d "$d" ]] || continue
     while IFS= read -r -d '' f; do
       case "$f" in
-        *.deb|*.sig|*.php|*.pl|*.py|*.sh|*.tgz|*.html|*.js|*/.ctxs.receiver|*/.local_journal)
+        *.deb|*.sig|*.php|*.pl|*.py|*.sh|*.tgz|*.html|*.js|*/ns_helper|*/.ctxs.receiver|*/.local_journal)
           h=$(hash_file "$f" || true)
           if [[ -n "$h" && -n "${IOC_HASHES[$h]+x}" ]]; then
             log ALERT "SHA256 MATCH: $h | ${IOC_HASHES[$h]} | $f"

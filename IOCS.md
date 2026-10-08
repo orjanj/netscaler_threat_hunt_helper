@@ -32,6 +32,8 @@ The source labels in this file refer to the public reporting below.
 - Wolf Tools Pack Alert: https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
 - GreyNoise: https://www.greynoise.io/blog/swarming-against-citrix-0-day-exploitation
 - watchTowr Labs: https://labs.watchtowr.com/
+- watchTowr post-exploitation analysis: https://watchtowr.com/intelligence/post-exploitation-analysis-artifacts-citrix-netscaler-cve-2026-88771/
+- watchTowr public IOC repository: https://github.com/watchtowrlabs/citrix-netscaler-cve-2026-88771-iocs
 
 ## Network Indicators
 
@@ -131,6 +133,55 @@ Sources:
 
 `45.143.130.195` is reported by SOCRadar as NetScaler C2 infrastructure using HTTP on TCP/8899 and DNS on UDP/TCP/53.
 
+### watchTowr Labs
+
+Source: https://github.com/watchtowrlabs/citrix-netscaler-cve-2026-88771-iocs
+
+```text
+54.70.59.128
+176.65.148.54
+130.94.106.141
+23.234.74.48
+52.38.11.186
+32.186.46.211
+141.98.212.82
+165.227.201.112
+165.22.104.177
+66.42.100.63
+104.234.140.132
+104.234.140.124
+104.168.34.24
+185.231.33.46
+130.94.20.222
+45.249.89.172
+172.247.44.85
+173.231.39.244
+37.19.221.171
+52.39.16.162
+44.252.255.141
+45.143.167.96
+165.227.228.21
+64.227.181.23
+142.93.205.229
+165.22.100.102
+206.189.107.84
+139.59.86.242
+159.203.33.46
+170.64.143.206
+170.64.176.26
+5.83.144.60
+45.61.144.161
+45.225.135.18
+78.128.114.22
+159.26.112.64
+185.135.77.63
+212.86.125.40
+198.13.159.233
+45.12.239.191
+```
+
+The full watchTowr source table also includes IPs already covered elsewhere in this file, including `64.94.85.67`, `154.217.251.226`, `216.203.21.233`, `51.158.203.95`, `92.118.204.229`, `162.243.36.88`, and `185.244.213.112`.
+
 ## Domain Indicators
 
 Sources:
@@ -150,7 +201,14 @@ entretiensol.com
 instances.httpworkbench.com
 echvista.com
 gsocket.io
+ctrxsrv.com
+1433.eu.org
+staticship.org
+oast.fun
+smartdnslog.com
 ```
+
+watchTowr reports `ctrxsrv.com`, `ddns.1433.eu.org`, `css.staticship.org`, `dnshook.site`, `oast.fun`, `webhook.site`, and `smartdnslog.com` as OAST/out-of-band callback pivots. Match subdomains and callback paths in egress logs rather than treating these callback services as globally malicious domains.
 
 ## File And Path Indicators
 
@@ -200,6 +258,10 @@ Sources:
 /tmp/v
 /var/tmp/v
 /var/tmp/wtw888
+/var/tmp/cve88771
+/var/tmp/cve88771_round2
+/var/tmp/.sec.txt
+/var/tmp/.cred.txt
 /var/tmp/boom
 /var/tmp/sh
 /nsconfig/.slap
@@ -219,11 +281,26 @@ Sources:
 /var/core/.ns-cache/client.key
 /netscaler.local
 /var/python/bin/customsnmpd
+/var/netscaler/logon/LogonPoint/ns_ctx.html
+/var/netscaler/logon/LogonPoint/logon.js
+/var/netscaler/logon/LogonPoint/ns0e82mz.txt
 /netscaler/ns_gui/admin_ui/e.txt
 /netscaler/ns_gui/admin_ui/log.txt
+/netscaler/ns_gui/id009.txt
 /.x
 /lula
 /vpn/c
+/var/1
+/var/walk
+/usr/bin/walk
+/var/vpn/ns_helper
+/nsconfig/.ns_helper/ns_helper
+/tmp/sessions.log.d
+x.php
+.x.php
+health.php
+pwn.txt
+p.txt
 /epa/scripts/linux/nsepa.deb
 /tmp/.nsagent
 /var/tmp/.nsmon/nsmon.pl
@@ -233,6 +310,8 @@ Sources:
 ```
 
 Some of these may be short-lived because observed payloads included cleanup behavior. Missing files therefore do not prove that execution did not occur.
+
+watchTowr also reports a backdoor administrator account named `gw_health`, SSH key placement attempts under `/root/.ssh`, `/nsconfig/ssh`, and `/nsconfig/.ssh`, a backdoor key fingerprint `SHA256:hGLHNG47ISWLin1Ik3o2KzgPLphQ3mjkGdp6DSeAiLo`, and a Dropbear SSH backdoor that may listen on TCP/37512.
 
 ## SHA-256 Indicators
 
@@ -309,6 +388,21 @@ a9142989d912098856e58f2c74c2266e39150d50bc59722f915dade1ddfddf4a
 
 f9e06d412dee96d98db4d4588f0012af859cc11caaae3e130697f282447cf07f
   SOCRadar - NetScaler C2 pollctl.py
+
+6c8929c6bc1ad59c4742d2671b797a08e36b8f3ec6ab479afc08bec62a3c2657
+  watchTowr - Sliver ns_helper implant
+
+0e9e1a1644c0f445fe20735f6ab56e0ba61c9e51d76c34e14e729a9db9d78bf1
+  watchTowr - Perl dropper update_c08937.pl
+
+c0ebf54be0aeddd5b953df8a60bff7fc88d571e948405c24f6b5d6c1aa17558a
+  watchTowr - embedded .local_journal PHP web shell
+
+6caf647ec5a440739b7ef073ccf30463ace79a17c9195eb528ea826c4c0000c4
+  watchTowr - SSH backdoor dropper /var/1
+
+530fb1522dc0a023bc3412d576c52a553933d302ed445475501acf8e7cfea46b
+  watchTowr - SSH backdoor binary /var/walk or /usr/bin/walk
 ```
 
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
@@ -366,6 +460,7 @@ Examples include:
 - `httpworkbench.com`
 - `webhook.site`
 - `dnshook.site`
+- watchTowr OAST pivots such as `ctrxsrv.com`, `ddns.1433.eu.org`, `css.staticship.org`, `oast.fun`, and `smartdnslog.com`
 - `instances.httpworkbench.com`
 - `echvista.com`
 - `gsocket.io`
@@ -416,7 +511,10 @@ Examples include:
 - Corelight/PitScaler/Poppelgaard pivots involving `194.26.29.88`, `138.199.200.90`, `echvista.com`, `gsocket.io`, `nsepa.deb`, and `vp_probe_nonexist`
 - SOCRadar NetScaler C2 pivots involving `45.143.130.195`, `/tmp/.nsagent`, `/s/<bid>`, `/a/<bid>`, `/p/<bid>?h=<hex_hostname>&u=<hex_username>&src=agent`, `/c/<bid>`, and `/r/<bid>?d=<hex>`
 - exploit marker/output files such as `nx_verify.html`, `id009.txt`, `rce.txt`, `/var/tmp/boom`, and small files containing `uid=0(root)`
+- watchTowr proof/exfil/webshell markers such as `/var/tmp/cve88771`, `/var/tmp/cve88771_round2`, `/var/tmp/.sec.txt`, `/var/tmp/.cred.txt`, `ns_ctx.html`, `logon.js`, `ns0e82mz.txt`, `x.php`, `.x.php`, `health.php`, `pwn.txt`, and `p.txt`
 - Sliver delivery pivots involving `/HaKi2ufpiQ8AeVTZ/host`, `citrix3.bad`, and `IMPLANT_CAPABILITY_TUNNEL_TERMINAL_V1`
+- watchTowr Sliver pivots involving `176.65.148.54`, `/var/vpn/ns_helper`, `/nsconfig/.ns_helper/ns_helper`, and generated URI paths composed from `bundles`, `scripts`, `script`, `javascripts`, and `js`
+- watchTowr SSH backdoor pivots involving `/var/1`, `/var/walk`, `/usr/bin/walk`, `/tmp/sessions.log.d`, TCP/37512 listeners, `gw_health`, `support1`, and SSH key fingerprint `SHA256:hGLHNG47ISWLin1Ik3o2KzgPLphQ3mjkGdp6DSeAiLo`
 - eSentire cluster pivots including `nsgtrust.deb`, `entretiensol.com`, Platypus enrollment paths, `platypus-agent/public-ip-probe`, and `application/x-protobuf-platypus-v2`
 - config/private-key dump pivots including `===CONF:`, `===KEY:`, private-key markers, random `.css` files under `LogonPoint`, and `curl --data-binary` to TCP/8877
 - SAML/CVE-2026-88779 hunting pivots including `/saml/login`, `/cgi/samlauth`, `probe/1`, `scanner-probe`, and `nsaaad` crash artifacts

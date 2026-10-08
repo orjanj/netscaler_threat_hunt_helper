@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.9 - 2026-10-08
+
+- Added watchTowr post-exploitation IOC source coverage and the watchTowr Labs public IOC repository.
+- Added watchTowr source IPs, OAST callback domains, Sliver C2/staging pivots, dropped file paths, webshell markers, backdoor account/key pivots, and SSH backdoor artifacts.
+- Added watchTowr SHA-256 IOCs for `ns_helper`, `update_c08937.pl`, embedded `.local_journal` webshell, `/var/1`, and `walk` SSH backdoor binaries.
+- Expanded live checks for `ns_helper`, `walk`, `gw_health`, and related cron/hash candidates.
+- Bumped script version to 1.9.
+
 ## 1.8 - 2026-10-07
 
 - Added Censys log-context pivots `AAAD API: sending login req` and `process_kernel_socket` for CVE-2026-88771 detection artifacts.
