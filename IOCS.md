@@ -7,6 +7,8 @@ These are **historical hunting indicators**, not a complete or permanent blockli
 The source labels in this file refer to the public reporting below.
 
 - Citrix CTX697096: https://support.citrix.com/external/article/CTX697096
+- NetScaler Console CVE-2026-107406 remediation guidance: https://docs.netscaler.com/us/en/netscaler-console-service/remediate-vulnerabilities-cve-2026-107406.html
+- Citrix NetScaler security bulletin blog / IOC guidance: https://community.citrix.com/techzone-blogs/110_security-updates/netscaler-adc-and-netscaler-gateway-security-bulletin-for-cve-2026-88771-through-cve-2026-88778/#Indicators_of_Compromise__cabcb4
 - Citrix CTX697174 (CVE-2026-88779): https://support.citrix.com/external/article/CTX697174/citrix-netscaler-adc-and-citrix-netscale.html
 - Citrix SAML guidance: https://community.citrix.com/techzone-blogs/110_security-updates/security-update-guidance-for-netscaler-saml-authentication-deployments/
 - GTIG / Mandiant: https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
@@ -223,6 +225,7 @@ Sources:
 
 ```text
 /vpn/scripts/linux/nsgclient18.deb
+/vpn/scripts/linux/nsgclient18_32.deb
 /vpn/scripts/linux/nsgser18.deb
 /vpn/scripts/linux/nsg64.deb
 /vpn/scripts/linux/nsgsupport.deb
@@ -310,6 +313,8 @@ p.txt
 ```
 
 Some of these may be short-lived because observed payloads included cleanup behavior. Missing files therefore do not prove that execution did not occur.
+
+`/vpn/scripts/linux/nsgclient18_32.deb` was reported in the Citrix NetScaler security bulletin blog discussion as an additional NetScaler Console IOC-scan finding adjacent to `/vpn/scripts/linux/nsgclient18.deb`; treat it as a community-observed hunting pivot and validate with surrounding request, process, and filesystem context.
 
 watchTowr also reports a backdoor administrator account named `gw_health`, SSH key placement attempts under `/root/.ssh`, `/nsconfig/ssh`, and `/nsconfig/.ssh`, a backdoor key fingerprint `SHA256:hGLHNG47ISWLin1Ik3o2KzgPLphQ3mjkGdp6DSeAiLo`, and a Dropbear SSH backdoor that may listen on TCP/37512.
 
@@ -408,6 +413,12 @@ c0ebf54be0aeddd5b953df8a60bff7fc88d571e948405c24f6b5d6c1aa17558a
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
 
 ## Behavioral Hunting Pivots
+
+### CVE-2026-107406 / NetScaler Console remediation note
+
+The NetScaler Console CVE-2026-107406 remediation page published on 2026-10-08 documents Console-based CVE Detection and upgrade workflow handling for impacted instances, but it does not publish standalone network, file, hash, or log IOCs. Treat `CVE Detection > Impacted Instances`, on-demand `Scan-Now`, and the Console upgrade workflow as exposure/remediation checks rather than exact compromise indicators.
+
+Citrix's public IOC guidance for CTX697096 likewise states that generic IOC detection is delivered through NetScaler Console and can be updated over time; customers unable to use NetScaler Console are directed to contact Citrix Support for the applicable generic IoCs.
 
 ### CVE-2026-88779 applicability check
 

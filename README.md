@@ -75,7 +75,7 @@ This is a threat-hunting helper, not a compromise verdict engine.
 - The script does not patch, delete files, kill processes, restart services, reboot, modify NetScaler configuration, exploit vulnerabilities, validate vulnerabilities by sending malicious traffic, or automatically declare a device compromised or clean.
 - The tool does not inspect memory/core dumps, automatically unpack every support-bundle/archive format, replace NetScaler Console IOC scanning, or replace a forensic or incident-response engagement.
 
-The indicator set and hunting logic in version **1.5** were reviewed against public reporting available on **2026-10-07**. The campaign is evolving; always compare this repository with the latest Citrix advisory and current incident-response reporting before treating the built-in IOC set as complete.
+The indicator set and hunting logic are based on public reporting reviewed during repository updates. The campaign is evolving; always compare this repository with the latest Citrix advisory and current incident-response reporting before treating the built-in IOC set as complete.
 
 ## Requirements
 
@@ -367,9 +367,10 @@ Do not publish raw reports without reviewing and sanitizing them first.
 
 ## Coverage summary
 
-The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-07**.
+The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-09**.
 
 - Citrix / NetScaler: affected product context, vulnerability preconditions, SAML applicability checks, and remediation guidance.
+- NetScaler Console CVE-2026-107406 guidance: Console CVE Detection and upgrade workflow context; no standalone exact IOCs were published on the remediation page reviewed.
 - Citrix CTX697174: read-only search for SAML SP/IdP configuration preconditions for CVE-2026-88779; patch/build verification and exploitation detection remain manual/out of scope.
 - GTIG / Mandiant: DTLS/NSPPE log pivots, Apache/PHP manipulation, WHIPSHOT/SLAPSHOT-related pivots, SUID/SGID checks, suspicious VPN paths, and network indicators.
 - Palo Alto Networks Unit 42: pre-disclosure infrastructure, web-shell paths, anomalous `GetUserName` activity, `.deb` web-shell filenames, SHA-256 indicators, fingerprinting URLs, log-poisoning pivots, Apache alias pivots, and web-shell command behavior.
@@ -385,6 +386,7 @@ The script combines indicators and behavioral hunting ideas from public reportin
 - LevelBlue / SpiderLabs: CVE-2026-88771 authentication/log-poisoning pivots, `sec_monitor`, staging artifacts, payload hashes, command-obfuscation pivots, and reverse-shell/payload/exfiltration infrastructure.
 - Arctic Wolf Labs: secondary hunting set for `/var/1.py`, `/var/tmp/.nsmon`, `nsmon.pl`, cron persistence, high-port listeners, and payload retrieval/execution behavior.
 - PitScaler / Poppelgaard: public IOC compilation and October SAML issue context, including contested `pyrlnk.cc` / `pylrk.cc` spellings, CVE-2026-88779 notes, nsaaad crash pivots, reported config/private-key dump behavior, Corelight reverse-shell/exfiltration pivots, `nsepa.deb` / `vp_probe_nonexist` probes, and the dedicated October 7 IOC-table updates.
+- Citrix NetScaler security bulletin blog: NetScaler Console IOC-scan guidance and the community-observed `/vpn/scripts/linux/nsgclient18_32.deb` pivot adjacent to `nsgclient18.deb`.
 
 ## Indicator reference
 

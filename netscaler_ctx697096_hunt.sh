@@ -2,9 +2,13 @@
 # NetScaler CTX697096 Threat Hunt Helper
 # Defensive/read-only hunting for CVE-2026-88771 / CVE-2026-88772 / CVE-2026-88779 activity and related post-exploitation.
 #
-# Sources used for indicators and hunt logic (verified 2026-10-07):
+# Sources used for indicators and hunt logic (verified 2026-10-09):
 #   - Citrix CTX697096 security bulletin:
 #     https://support.citrix.com/external/article/CTX697096
+#   - NetScaler Console CVE-2026-107406 remediation guidance:
+#     https://docs.netscaler.com/us/en/netscaler-console-service/remediate-vulnerabilities-cve-2026-107406.html
+#   - Citrix NetScaler security bulletin blog and IOC guidance:
+#     https://community.citrix.com/techzone-blogs/110_security-updates/netscaler-adc-and-netscaler-gateway-security-bulletin-for-cve-2026-88771-through-cve-2026-88778/#Indicators_of_Compromise__cabcb4
 #   - Citrix CTX697174 security bulletin (CVE-2026-88779):
 #     https://support.citrix.com/external/article/CTX697174/citrix-netscaler-adc-and-citrix-netscale.html
 #   - Google Threat Intelligence Group / Mandiant:
@@ -66,7 +70,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.9"
+VERSION="1.10"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -215,6 +219,7 @@ IOC_DOMAINS=(
 # Host/file indicators.
 IOC_PATHS=(
   "/vpn/scripts/linux/nsgclient18.deb"
+  "/vpn/scripts/linux/nsgclient18_32.deb"
   "/vpn/scripts/linux/nsgser18.deb"
   "/vpn/scripts/linux/nsg64.deb"
   "/vpn/scripts/linux/nsgsupport.deb"

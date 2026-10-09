@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.10 - 2026-10-09
+
+- Reviewed the NetScaler Console CVE-2026-107406 remediation guidance and noted that it publishes Console CVE Detection / upgrade workflow guidance, not standalone exact IOCs.
+- Added Citrix NetScaler security bulletin blog / IOC guidance source coverage.
+- Added community-observed file/path pivot `/vpn/scripts/linux/nsgclient18_32.deb` adjacent to the existing `nsgclient18.deb` indicator.
+- Bumped script version to 1.10.
+
 ## 1.9 - 2026-10-08
 
 - Added watchTowr post-exploitation IOC source coverage and the watchTowr Labs public IOC repository.
