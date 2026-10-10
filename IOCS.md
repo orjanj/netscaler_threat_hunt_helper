@@ -21,6 +21,7 @@ The source labels in this file refer to the public reporting below.
 - Nextron Systems: https://www.nextron-systems.com/2026/10/06/update-on-citrix-netscaler-cve-2026-88771-and-cve-2026-88772-expanded-thor-detection-coverage/
 - Fortra Emerging Threats: https://www.fortra.com/security/emerging-threats/netscaler-cve-2026-88771-improper-input-validation-and-cve-2026-88772
 - SOCRadar NetScaler C2: https://socradar.io/blog/netscaler-c2-cve-2026-88771-exploitation/
+- Huntback CVE-2026-88771 analysis: https://huntback.io/blog/cve-88771-analysis
 - Censys CVE-2026-88771 / CVE-2026-88772 advisory: https://censys.com/advisory/cve-2026-88771-cve-2026-88772/
 - Decryption Digest CVE-2026-88779 SAML zero-day notes: https://www.decryptiondigest.com/blog/citrix-netscaler-saml-zero-day-cve-2026-88779-patch
 - Beazley Security Labs BSL-A1216: https://labs.beazley.security/advisories/BSL-A1216
@@ -135,6 +136,38 @@ Sources:
 
 `45.143.130.195` is reported by SOCRadar as NetScaler C2 infrastructure using HTTP on TCP/8899 and DNS on UDP/TCP/53.
 
+### Huntback CVE-2026-88771 analysis
+
+Sources:
+
+- https://huntback.io/blog/cve-88771-analysis
+- https://www.poppelgaard.com/cve-2026-88771-through-cve-2026-88778-what-you-should-know-and-how-to-fix-your-netscaler-adc-netscaler-gateway
+
+```text
+66.42.100.63
+23.234.74.48
+172.247.44.85
+194.54.83.22
+107.189.7.141
+109.71.252.97
+130.12.182.7
+137.220.53.135
+176.65.148.54
+185.100.87.166
+185.121.170.60
+185.220.101.54
+185.243.218.225
+192.42.116.101
+192.42.116.62
+192.42.116.65
+204.8.96.74
+45.59.125.187
+46.151.182.131
+77.247.126.239
+```
+
+Huntback notes that some sources are Tor, VPN, tunnel, or residential-proxy-adjacent. Treat them as hunting pivots requiring timestamp, direction, URL, and payload context rather than standalone proof of compromise. Some of these values also appear in other sections because other public reports tracked the same infrastructure.
+
 ### watchTowr Labs
 
 Source: https://github.com/watchtowrlabs/citrix-netscaler-cve-2026-88771-iocs
@@ -208,9 +241,13 @@ ctrxsrv.com
 staticship.org
 oast.fun
 smartdnslog.com
+pinggy.net
+serveousercontent.com
 ```
 
 watchTowr reports `ctrxsrv.com`, `ddns.1433.eu.org`, `css.staticship.org`, `dnshook.site`, `oast.fun`, `webhook.site`, and `smartdnslog.com` as OAST/out-of-band callback pivots. Match subdomains and callback paths in egress logs rather than treating these callback services as globally malicious domains.
+
+Huntback reports `pinggy.net` and `serveousercontent.com` as tunnel-fronted dropper pivots used to stage `/tmp/.p`.
 
 ## File And Path Indicators
 
@@ -298,6 +335,8 @@ Sources:
 /usr/bin/walk
 /var/vpn/ns_helper
 /nsconfig/.ns_helper/ns_helper
+/tmp/.p
+/var/tmp/.p
 /tmp/sessions.log.d
 x.php
 .x.php
@@ -326,6 +365,7 @@ Sources:
 - https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
 - https://labs.beazley.security/advisories/BSL-A1216
 - https://pitscaler.com/
+- https://www.poppelgaard.com/cve-2026-88771-through-cve-2026-88778-what-you-should-know-and-how-to-fix-your-netscaler-adc-netscaler-gateway
 
 ```text
 ae22ef2517b5c0fb47f78745b9cb5260acee0e751b89bcd354640ff8bc8d29ec
@@ -408,6 +448,7 @@ c0ebf54be0aeddd5b953df8a60bff7fc88d571e948405c24f6b5d6c1aa17558a
 
 530fb1522dc0a023bc3412d576c52a553933d302ed445475501acf8e7cfea46b
   watchTowr - SSH backdoor binary /var/walk or /usr/bin/walk
+
 ```
 
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
@@ -472,6 +513,8 @@ Examples include:
 - `webhook.site`
 - `dnshook.site`
 - watchTowr OAST pivots such as `ctrxsrv.com`, `ddns.1433.eu.org`, `css.staticship.org`, `oast.fun`, and `smartdnslog.com`
+- Huntback pivots such as `pinggy.net`, `serveousercontent.com`, `/tmp/.p`, and `/var/tmp/.p`
+- Huntback log-channel C2 and config-copy pivots such as `INDEX:`, `fefypa:`, `fdylo9:`, and `c88771_<ip>.txt` under web-served VPN media paths
 - `instances.httpworkbench.com`
 - `echvista.com`
 - `gsocket.io`

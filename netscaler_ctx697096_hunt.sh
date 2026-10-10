@@ -70,7 +70,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.10"
+VERSION="1.11"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -155,6 +155,26 @@ IOC_IPS=(
   "68.178.160.183"     # Poppelgaard community IOC compilation
   "5.188.206.226"      # Poppelgaard community IOC compilation
   "45.143.130.195"     # SOCRadar NetScaler C2 HTTP/DNS listener
+  "107.189.7.141"      # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
+  "109.71.252.97"      # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
+  "130.12.182.7"       # Huntback / Poppelgaard injection or payload activity
+  "137.220.53.135"     # Huntback / Poppelgaard injection or payload activity
+  "185.100.87.166"     # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
+  "185.121.170.60"     # Huntback / Poppelgaard injection or payload activity
+  "185.220.101.54"     # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
+  "185.243.218.225"    # Huntback / Poppelgaard injection or payload activity
+  "192.42.116.101"     # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
+  "192.42.116.62"      # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
+  "192.42.116.65"      # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
+  "194.54.83.22"       # Huntback / Poppelgaard OOB proving activity
+  "204.8.96.74"        # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
+  "45.59.125.187"      # Huntback / Poppelgaard injection or payload activity
+  "46.151.182.131"     # Huntback / Poppelgaard injection or payload activity
+  "77.247.126.239"     # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
+  "78.135.96.136"      # PitScaler / Poppelgaard public IOC compilation
+  "80.240.22.229"      # PitScaler / Poppelgaard public IOC compilation
+  "89.36.231.206"      # PitScaler / Poppelgaard public IOC compilation
+  "91.195.240.123"     # PitScaler / Poppelgaard public IOC compilation
   "54.70.59.128"       # watchTowr post-exploitation source
   "176.65.148.54"      # watchTowr Sliver C2/staging infrastructure
   "130.94.106.141"     # watchTowr post-exploitation source
@@ -214,6 +234,8 @@ IOC_DOMAINS=(
   "staticship.org"     # watchTowr css.staticship.org OOB callback domain
   "oast.fun"           # watchTowr OAST callback service
   "smartdnslog.com"    # watchTowr OOB callback service
+  "pinggy.net"         # Huntback / Poppelgaard tunnel-fronted dropper domain
+  "serveousercontent.com" # Huntback / Poppelgaard tunnel-fronted dropper domain
 )
 
 # Host/file indicators.
@@ -292,6 +314,8 @@ IOC_PATHS=(
   "/usr/bin/walk"
   "/var/vpn/ns_helper"
   "/nsconfig/.ns_helper/ns_helper"
+  "/tmp/.p"
+  "/var/tmp/.p"
   "/tmp/sessions.log.d"
   "/epa/scripts/linux/nsepa.deb"
   "/tmp/.nsagent"
@@ -367,6 +391,8 @@ LOG_PATTERNS=(
   "css\.staticship\.org"
   "oast\.fun"
   "smartdnslog\.com"
+  "pinggy\.net"
+  "serveousercontent\.com"
   "176\.65\.148\.54"
   "176\.65\.148\.54:8080/ns_helper"
   '^/(bundles|scripts|script|javascripts|js)(/(bundles|scripts|script|javascripts|js)){0,5}/(route|app|app\.min|array)\.php(\?[A-Za-z]=[A-Za-z0-9]+)?$'
@@ -427,6 +453,9 @@ LOG_PATTERNS=(
   "nx_verify\.html"
   "wtw[[:alnum:]_.-]*"
   "cve88771(_round2)?"
+  "c88771_[0-9.]+\.txt"
+  "fefypa:"
+  "fdylo9:"
   "ns_ctx\.html"
   "logon\.js"
   "ns0e82mz\.txt"

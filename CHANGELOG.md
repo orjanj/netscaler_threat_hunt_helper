@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.11 - 2026-10-10
+
+- Reviewed Huntback's CVE-2026-88771 analysis, using Thomas Poppelgaard's timeline article only as supporting context.
+- Added Huntback network indicators for OOB proving, config theft, direct POST exfiltration, ns_helper staging, tunnel-fronted droppers, Perl droppers, PHP webshell delivery, and log-channel C2 activity.
+- Added Huntback tunnel-fronted dropper domains `pinggy.net` and `serveousercontent.com`.
+- Added Huntback log-channel C2 and staging pivots for `fefypa:`, `fdylo9:`, `c88771_<ip>.txt`, `/tmp/.p`, and `/var/tmp/.p`.
+- Bumped script version to 1.11.
+
 ## 1.10 - 2026-10-09
 
 - Reviewed the NetScaler Console CVE-2026-107406 remediation guidance and noted that it publishes Console CVE Detection / upgrade workflow guidance, not standalone exact IOCs.

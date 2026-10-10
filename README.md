@@ -367,7 +367,7 @@ Do not publish raw reports without reviewing and sanitizing them first.
 
 ## Coverage summary
 
-The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-09**.
+The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-10**.
 
 - Citrix / NetScaler: affected product context, vulnerability preconditions, SAML applicability checks, and remediation guidance.
 - NetScaler Console CVE-2026-107406 guidance: Console CVE Detection and upgrade workflow context; no standalone exact IOCs were published on the remediation page reviewed.
@@ -385,7 +385,8 @@ The script combines indicators and behavioral hunting ideas from public reportin
 - Beazley Security Labs / GreyNoise / Lupovis: exploitation/scanning IPs, DNS callback pivots, public PoC markers, second-wave SAML/log-injection delivery and callback pivots, Sliver payload hashes, and the GreyNoise `.ctxs.receiver` web-shell hash.
 - LevelBlue / SpiderLabs: CVE-2026-88771 authentication/log-poisoning pivots, `sec_monitor`, staging artifacts, payload hashes, command-obfuscation pivots, and reverse-shell/payload/exfiltration infrastructure.
 - Arctic Wolf Labs: secondary hunting set for `/var/1.py`, `/var/tmp/.nsmon`, `nsmon.pl`, cron persistence, high-port listeners, and payload retrieval/execution behavior.
-- PitScaler / Poppelgaard: public IOC compilation and October SAML issue context, including contested `pyrlnk.cc` / `pylrk.cc` spellings, CVE-2026-88779 notes, nsaaad crash pivots, reported config/private-key dump behavior, Corelight reverse-shell/exfiltration pivots, `nsepa.deb` / `vp_probe_nonexist` probes, and the dedicated October 7 IOC-table updates.
+- PitScaler / Poppelgaard: public IOC compilation and October SAML issue context, including contested `pyrlnk.cc` / `pylrk.cc` spellings, CVE-2026-88779/CVE-2026-107406 notes, nsaaad crash pivots, reported config/private-key dump behavior, Corelight reverse-shell/exfiltration pivots, `nsepa.deb` / `vp_probe_nonexist` probes, and dedicated October 7 IOC-table updates.
+- Huntback: ten-day decoy telemetry for CVE-2026-88771, including OOB proving, config theft, direct POST exfiltration, `ns_helper`, tunnel-fronted droppers (`pinggy.net`, `serveousercontent.com`), Perl droppers, hidden PHP webshell delivery, User-Agent payloads, and log-channel C2 markers.
 - Citrix NetScaler security bulletin blog: NetScaler Console IOC-scan guidance and the community-observed `/vpn/scripts/linux/nsgclient18_32.deb` pivot adjacent to `nsgclient18.deb`.
 
 ## Indicator reference
