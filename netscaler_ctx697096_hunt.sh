@@ -70,7 +70,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.11"
+VERSION="1.12"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -119,6 +119,9 @@ IOC_IPS=(
   "104.248.74.206"     # Unit 42 .deb webshell requests
   "137.184.91.207"     # Unit 42 .deb webshell requests
   "139.180.152.138"    # Unit 42 webshell drop activity / eSentire
+  "45.76.34.141"       # Sygnia / LevelBlue exploitation infrastructure
+  "209.250.236.77"     # Sygnia / LevelBlue exploitation infrastructure
+  "138.68.21.29"       # Sygnia / LevelBlue exploitation infrastructure
   "70.172.58.168"      # LevelBlue exploitation source
   "45.141.21.130"       # LevelBlue reverse-shell C2
   "162.243.36.88"       # LevelBlue exploitation source
@@ -146,6 +149,10 @@ IOC_IPS=(
   "153.75.82.220"      # eSentire / Arctic Wolf shell payload host
   "216.203.21.233"     # eSentire exploitation source / GreyNoise tagged
   "185.243.41.247"     # eSentire campaign infrastructure
+  "89.44.80.7"         # Arctic Wolf reverse-shell / payload infrastructure
+  "130.94.42.226"      # Arctic Wolf reverse-shell / payload infrastructure
+  "134.175.71.50"      # Arctic Wolf reverse-shell / payload infrastructure
+  "177.4.12.11"        # Arctic Wolf reverse-shell / payload infrastructure
   "81.94.239.8"        # PitScaler / Poppelgaard config and private-key exfil receiver on TCP/8877
   "138.199.60.5"       # PitScaler / Poppelgaard CVE-2026-88779 SAML crash-payload source
   "78.128.113.10"      # Lupovis / Poppelgaard fetch-based next-stage attempt
@@ -154,7 +161,10 @@ IOC_IPS=(
   "158.94.209.12"      # Poppelgaard community IOC compilation
   "68.178.160.183"     # Poppelgaard community IOC compilation
   "5.188.206.226"      # Poppelgaard community IOC compilation
+  "38.134.148.238"     # NetScaler community report, 2026-10-02
+  "167.148.88.236"     # NetScaler community report, 2026-10-02
   "45.143.130.195"     # SOCRadar NetScaler C2 HTTP/DNS listener
+  "72.5.65.111"        # World of EUC Slack community pitboss wave payload host
   "107.189.7.141"      # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
   "109.71.252.97"      # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
   "130.12.182.7"       # Huntback / Poppelgaard injection or payload activity
@@ -171,6 +181,15 @@ IOC_IPS=(
   "45.59.125.187"      # Huntback / Poppelgaard injection or payload activity
   "46.151.182.131"     # Huntback / Poppelgaard injection or payload activity
   "77.247.126.239"     # Huntback / Poppelgaard injection or payload activity; Tor/VPN context likely
+  "138.199.60.22"      # Huntback public decoy telemetry, NX-CVE-OK / nx_verify.html probe source
+  "138.199.60.36"      # Huntback public decoy telemetry, NX-CVE-OK / nx_verify.html probe source
+  "146.70.199.170"     # Huntback public decoy telemetry, NX-CVE-OK / nx_verify.html probe source
+  "146.70.211.157"     # Huntback public decoy telemetry, NX-CVE-OK / nx_verify.html probe source
+  "23.162.8.173"       # Huntback public decoy telemetry, NX-CVE-OK / nx_verify.html probe source
+  "104.207.47.54"      # Beazley exploit delivery server
+  "104.207.46.202"     # Beazley exploit delivery server
+  "104.207.32.77"      # Beazley exploit delivery server
+  "23.234.80.205"      # Field report: LogonUISimple webshell-alias probe source
   "78.135.96.136"      # PitScaler / Poppelgaard public IOC compilation
   "80.240.22.229"      # PitScaler / Poppelgaard public IOC compilation
   "89.36.231.206"      # PitScaler / Poppelgaard public IOC compilation
@@ -189,6 +208,7 @@ IOC_IPS=(
   "104.234.140.124"    # watchTowr post-exploitation source
   "104.168.34.24"      # watchTowr post-exploitation source
   "185.231.33.46"      # watchTowr post-exploitation source
+  "104.200.67.56"      # TENEX Platypus C2 / gsocket infrastructure
   "130.94.20.222"      # watchTowr post-exploitation source
   "45.249.89.172"      # watchTowr post-exploitation source
   "172.247.44.85"      # watchTowr post-exploitation source
@@ -203,6 +223,28 @@ IOC_IPS=(
   "165.22.100.102"     # watchTowr post-exploitation source
   "206.189.107.84"     # watchTowr post-exploitation source
   "139.59.86.242"      # watchTowr post-exploitation source
+  "103.214.20.54"      # Gotham Technology Group IR indicator, shared privately
+  "109.136.126.142"    # Gotham Technology Group IR indicator, shared privately
+  "135.136.98.176"     # Gotham Technology Group IR indicator, shared privately
+  "139.162.75.170"     # Gotham Technology Group IR indicator, shared privately
+  "139.162.83.159"     # Gotham Technology Group IR indicator, shared privately
+  "143.244.44.177"     # Gotham Technology Group IR indicator, shared privately
+  "146.70.199.53"      # Gotham Technology Group IR indicator, shared privately
+  "149.28.29.221"      # Gotham Technology Group IR indicator, shared privately
+  "159.223.233.184"    # Gotham Technology Group IR indicator, shared privately
+  "159.65.104.231"     # Gotham Technology Group IR indicator, shared privately
+  "167.88.172.6"       # Gotham Technology Group IR indicator, shared privately
+  "194.127.166.126"    # Gotham Technology Group IR indicator, shared privately
+  "207.148.105.57"     # Gotham Technology Group IR indicator, shared privately
+  "23.234.109.28"      # Gotham Technology Group IR indicator, shared privately
+  "23.234.80.246"      # Gotham Technology Group IR indicator, shared privately
+  "23.234.83.194"      # Gotham Technology Group IR indicator, shared privately
+  "31.56.197.137"      # Gotham Technology Group IR indicator, shared privately
+  "64.176.71.42"       # Gotham Technology Group IR indicator, shared privately
+  "66.173.222.26"      # Gotham Technology Group IR indicator, shared privately
+  "79.133.42.141"      # Gotham Technology Group IR indicator, shared privately
+  "85.11.187.35"       # Gotham Technology Group IR indicator, shared privately
+  "91.199.163.55"      # Gotham Technology Group IR indicator, shared privately
   "159.203.33.46"      # watchTowr post-exploitation source
   "170.64.143.206"     # watchTowr post-exploitation source
   "170.64.176.26"      # watchTowr post-exploitation source
@@ -234,6 +276,15 @@ IOC_DOMAINS=(
   "staticship.org"     # watchTowr css.staticship.org OOB callback domain
   "oast.fun"           # watchTowr OAST callback service
   "smartdnslog.com"    # watchTowr OOB callback service
+  "dnsl.cc"            # NetScaler community / Gotham v1.11 domain pivot
+  "gs.thc.org"         # NetScaler community / Gotham v1.11 domain pivot
+  "white-guard.pro"    # TENEX Platypus / gsocket infrastructure
+  "garyvard.com"       # TENEX Platypus certificate domain
+  "hickoryusedauto.com" # TENEX Platypus certificate domain
+  "gurerasfalt.com"    # TENEX Platypus certificate domain
+  "rockinroyaltykids.com" # TENEX Platypus certificate domain
+  "currydownsrvpark.com" # TENEX Platypus certificate domain
+  "v5v.in"             # World of EUC Slack community pitboss wave payload host
   "pinggy.net"         # Huntback / Poppelgaard tunnel-fronted dropper domain
   "serveousercontent.com" # Huntback / Poppelgaard tunnel-fronted dropper domain
 )
@@ -333,16 +384,34 @@ IOC_HASHES["79c65fa04541032e251fa4796b97800374b63c7982593dd1a2e0db605d429186"]="
 IOC_HASHES["e9fe43968c6c0955300e3bc4d7fb0b05a18570b4733aaf4f5c6f7f09be5a242c"]="LevelBlue main.py"
 IOC_HASHES["974b69782fdf5d67b97cfd508465939e44ee10798dbcc1e82b92d78776bad938"]="LevelBlue update_c08937.pl"
 IOC_HASHES["6f5a2a452a7901323abd21879c6cecccb47c06aeeaccb1b467212f3b11e4b1e7"]="GreyNoise .ctxs.receiver webshell"
+IOC_HASHES["fb7f574a4c185fa8e520c47280939ce22899243a0083ee7120b7300c43baca29"]="ThreatUnpacked / Gotham vulnerable ns_monuploadd_err.pl"
 IOC_HASHES["c2f5532f3209dce0bd30ead47a2616a74ce8170324ef68dfd59acac3f5f1da34"]="Beazley Sliver download script"
 IOC_HASHES["0188b0eba4b01c4fb838df9d1d76c76d7f1dc22897e25161975b606c134c1027"]="Beazley/PitScaler Sliver C2 implant"
 IOC_HASHES["b9b0a4380db462c706597bd3e6a08d4d99fcbbf0919d63eb99b488d396c8ce63"]="PitScaler second-wave Perl payload"
 IOC_HASHES["72cff13fcba75504485e94fa6bfc5e9363e860f49efdba68feb583148eec38f2"]="Poppelgaard SAML-attack kit dropper"
 IOC_HASHES["5ea5ea61e9062822bee3f66ef5ff47c217178d9e31936ad6daf10c5dfae44d12"]="eSentire PHP webshell .ico variant"
 IOC_HASHES["7add390ceee4a1373211b3e340451b34f08965fc4d805f94c9b8cebdc0775774"]="eSentire nsgtrust.deb PHP webshell"
+IOC_HASHES["73b74309f4728d169cc9edfb2767c5aadd75d39b62de93c935a86c777d2646bc"]="Arctic Wolf /xd7h/x payload"
+IOC_HASHES["9c7bf01d2c2cb31a3609d27c1bc9abc60d86e37b7f9908547e0c75fb18b99aab"]="Arctic Wolf nsmon.pl"
 IOC_HASHES["57f9f30c50240fd48d761de7961a430cdebf2c084a36bc76d376a1ce8e6dfa9d"]="eSentire / Arctic Wolf Platypus x stager"
 IOC_HASHES["927c7fbef2e620c1ce482c3ed67ebf53da97693c1d6c7552c77aec84ba982cf8"]="eSentire / Arctic Wolf Platypus bootstrap script"
 IOC_HASHES["c98aee75c5e199c9b5527984ce48675d665963f7cab8ce9f2e82465de6b58727"]="eSentire / TENEX Platypus agent FreeBSD amd64"
 IOC_HASHES["ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1"]="Rapid7 / PitScaler .ctxs.receiver webshell sample"
+IOC_HASHES["74da9485815ee124e2ebe155dbcfb758b54bd97760956998abf64838c865f78b"]="Gotham / ThreatUnpacked SAML-attack kit artifact"
+IOC_HASHES["ec6d42cc99e3c7870dc11606643e8b296e4aadafaf886f05506e1f515aa55eee"]="Gotham / ThreatUnpacked SAML-attack kit artifact"
+IOC_HASHES["12b15fe585a21d33eeb863fc5a246596225a77185a314d55de3c980bbe11e9c0"]="Gotham / r/Citrix SAML-attack kit artifact"
+IOC_HASHES["83307fb218b557a0a1cab46e094b038f9b795d2d02bd04ac7ce4e0d3eb4ec8c3"]="Gotham / Valhalla SAML-attack kit artifact"
+IOC_HASHES["b9bc8d87ef77f63082445f5664e02a84db568f6d8147e077b97dc15df9f2a36b"]="Gotham SAML-attack chisel tunnel binary"
+IOC_HASHES["12ff1448594844ffe072674e4da36c2bb92bce19bfdf494bcae0542ce6e1731a"]="Gotham SAML-attack Sliver implant"
+IOC_HASHES["d04663bdab3183c94381d19eec7af59f90890497d5ad95c7af1c00d0fe8901dc"]="Gotham SAML-attack Sliver implant"
+IOC_HASHES["0a7f88a74e82725e8ceaf9aa0b25b43c43105ff7653b29a0cbba94ce40b04447"]="Gotham SAML-attack Sliver implant"
+IOC_HASHES["602b859d38c02c559f62e5c6f7ba30265b2ffd7faf528a3b0151727c7a1dc2d3"]="Gotham SAML-attack Sliver implant"
+IOC_HASHES["899299dcaa6531e450cfc844f7948bc3180c6cbebc43cf751e65ee261f6732cd"]="Gotham SAML-attack Sliver implant"
+IOC_HASHES["84f23d964ab636c81d95c3185f06a2ec628a9762dc767131d775500caf8dda0a"]="Gotham SAML-attack Perl payload"
+IOC_HASHES["be559fb34104b8ce491082276084e76736f5a5ec6b8d05fe31adc60ec063e447"]="Gotham SLAPSHOT / WHIPSHOT kit artifact"
+IOC_HASHES["dc07e82e31f874c386e74bb5882c269a3d33a774a7b9772b11830bf6d33bfc7e"]="Gotham SLAPSHOT / WHIPSHOT kit artifact"
+IOC_HASHES["9f792058552da5cbbb08693694d31a31d360be8402a3c9d41584d34e3b569be7"]="Gotham SLAPSHOT / WHIPSHOT kit artifact"
+IOC_HASHES["cd6b7acea0bdbcf8b6e8b2e62ea710ab3d9e59111202ac7a733d109c27c948fd"]="Gotham SLAPSHOT / WHIPSHOT kit artifact"
 IOC_HASHES["8588d11874ab52a1637953dc5538984647023d00b529f695fbd0e40cf8e5e852"]="SOCRadar NetScaler C2 run.sh"
 IOC_HASHES["4992f575f3f1fc448cf54a4a0ce13cf6548790777abe0af1f935663498ea5639"]="SOCRadar NetScaler C2 targets.py"
 IOC_HASHES["69a34c591eaaa2cbecaeed10c303b8dcf04c846b8408491da5452b9cfc93f686"]="SOCRadar NetScaler C2 probe.py"

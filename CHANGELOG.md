@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12 - 2026-10-10
+
+- Added missing checker-comparison indicators that map back to named upstream sources rather than citing the checker itself.
+- Added source-attributed IPs from Arctic Wolf, TENEX, Sygnia / LevelBlue, Huntback public decoy telemetry, Beazley, NetScaler community reports, World of EUC Slack, and Gotham Technology Group shared IR notes.
+- Added TENEX Platypus / gsocket domains, World of EUC `v5v.in`, and community/Gotham domain pivots `dnsl.cc` and `gs.thc.org`.
+- Added Arctic Wolf, ThreatUnpacked/Gotham, and Gotham SLAPSHOT / WHIPSHOT SHA-256 indicators.
+- Bumped script version to 1.12.
+
 ## 1.11 - 2026-10-10
 
 - Reviewed Huntback's CVE-2026-88771 analysis, using Thomas Poppelgaard's timeline article only as supporting context.

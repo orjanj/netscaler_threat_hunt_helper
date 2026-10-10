@@ -17,6 +17,7 @@ The source labels in this file refer to the public reporting below.
 - Elastic detection rule: https://github.com/elastic/detection-rules/blob/main/rules/network/initial_access_netscaler_log_poisoning_command_injection.toml
 - GreyNoise: https://www.greynoise.io/blog/swarming-against-citrix-0-day-exploitation
 - TENEX: https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
+- Sygnia: https://www.sygnia.co/threat-reports-and-advisories/actively-exploited-netscaler-vulnerabilities/
 - eSentire TRU: https://www.esentire.com/blog/more-shells-than-a-seafood-buffet-tracking-citrix-netscaler-exploitation-activities-cve-2026-88771
 - Nextron Systems: https://www.nextron-systems.com/2026/10/06/update-on-citrix-netscaler-cve-2026-88771-and-cve-2026-88772-expanded-thor-detection-coverage/
 - Fortra Emerging Threats: https://www.fortra.com/security/emerging-threats/netscaler-cve-2026-88771-improper-input-validation-and-cve-2026-88772
@@ -28,6 +29,7 @@ The source labels in this file refer to the public reporting below.
 - PitScaler public briefing / IOC compilation: https://pitscaler.com/
 - PitScaler public IOC table: https://pitscaler.com/netscaler-iocs/
 - Thomas Poppelgaard NetScaler timeline / checker notes: https://www.poppelgaard.com/cve-2026-88771-through-cve-2026-88778-what-you-should-know-and-how-to-fix-your-netscaler-adc-netscaler-gateway
+- Thomas Poppelgaard NetScaler checker GitHub, used only as fallback provenance for community-only notes that have no public primary source URL: https://github.com/ThomasPoppelgaard/netscaler-ctx697096-checker
 - watchTowr CVE-2026-88779 rapid reaction: https://watchtowr.com/intelligence/citrix-netscaler-denial-of-service-memory-overflow-cve-2026-88779/
 - watchTowr CVE-2026-88779 FAQ: https://watchtowr.com/intelligence/citrix-netscaler-cve-2026-88779-faq/
 - LevelBlue SpiderLabs: https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
@@ -77,6 +79,19 @@ Source: https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
 ```
 
 `104.28.215.136` and `104.28.247.137` are Cloudflare WARP egress addresses reported by Unit 42. Treat them as correlation pivots only, not as standalone blocklist entries.
+
+### Sygnia / LevelBlue
+
+Sources:
+
+- https://www.sygnia.co/threat-reports-and-advisories/actively-exploited-netscaler-vulnerabilities/
+- https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
+
+```text
+45.76.34.141
+209.250.236.77
+138.68.21.29
+```
 
 ### LevelBlue
 
@@ -136,6 +151,46 @@ Sources:
 
 `45.143.130.195` is reported by SOCRadar as NetScaler C2 infrastructure using HTTP on TCP/8899 and DNS on UDP/TCP/53.
 
+### Arctic Wolf Labs
+
+Source: https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
+
+```text
+89.44.80.7
+130.94.42.226
+134.175.71.50
+177.4.12.11
+```
+
+### TENEX Platypus / gsocket activity
+
+Source: https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
+
+```text
+104.200.67.56
+195.123.233.245
+38.180.81.157
+95.133.231.109
+199.233.217.13
+```
+
+### NetScaler community reports
+
+Source: NetScaler community reporting from 2026-10-02, via Thomas Poppelgaard's checker notes: https://github.com/ThomasPoppelgaard/netscaler-ctx697096-checker
+
+```text
+38.134.148.238
+167.148.88.236
+```
+
+### World of EUC Slack community report
+
+Source: World of EUC Slack community report from 2026-10-08, via Thomas Poppelgaard's checker notes: https://github.com/ThomasPoppelgaard/netscaler-ctx697096-checker
+
+```text
+72.5.65.111
+```
+
 ### Huntback CVE-2026-88771 analysis
 
 Sources:
@@ -167,6 +222,65 @@ Sources:
 ```
 
 Huntback notes that some sources are Tor, VPN, tunnel, or residential-proxy-adjacent. Treat them as hunting pivots requiring timestamp, direction, URL, and payload context rather than standalone proof of compromise. Some of these values also appear in other sections because other public reports tracked the same infrastructure.
+
+### Huntback public decoy telemetry thread
+
+Source: Huntback public decoy telemetry, 2026-10-04, as described in the reviewed source notes.
+
+```text
+138.199.60.22
+138.199.60.36
+146.70.199.170
+146.70.211.157
+23.162.8.173
+```
+
+### Beazley Security Labs exploit-delivery servers
+
+Source: https://labs.beazley.security/advisories/BSL-A1216
+
+```text
+104.207.47.54
+104.207.46.202
+104.207.32.77
+```
+
+### Field-reported LogonUISimple probe source
+
+Source: field report from 2026-10-07; no public primary URL was available in the reviewed source notes.
+
+```text
+23.234.80.205
+```
+
+### Gotham Technology Group shared IR indicators
+
+Source: Gotham Technology Group incident-response indicators shared privately and described as used with permission; no public primary URL was available in the reviewed source notes.
+
+```text
+103.214.20.54
+109.136.126.142
+135.136.98.176
+139.162.75.170
+139.162.83.159
+143.244.44.177
+146.70.199.53
+149.28.29.221
+159.223.233.184
+159.65.104.231
+167.88.172.6
+194.127.166.126
+207.148.105.57
+23.234.109.28
+23.234.80.246
+23.234.83.194
+31.56.197.137
+64.176.71.42
+66.173.222.26
+79.133.42.141
+85.11.187.35
+91.199.163.55
+```
 
 ### watchTowr Labs
 
@@ -223,6 +337,8 @@ Sources:
 
 - https://labs.beazley.security/advisories/BSL-A1216
 - https://pitscaler.com/
+- https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
+- https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
 
 ```text
 httpworkbench.com
@@ -241,6 +357,15 @@ ctrxsrv.com
 staticship.org
 oast.fun
 smartdnslog.com
+dnsl.cc
+gs.thc.org
+white-guard.pro
+garyvard.com
+hickoryusedauto.com
+gurerasfalt.com
+rockinroyaltykids.com
+currydownsrvpark.com
+v5v.in
 pinggy.net
 serveousercontent.com
 ```
@@ -248,6 +373,8 @@ serveousercontent.com
 watchTowr reports `ctrxsrv.com`, `ddns.1433.eu.org`, `css.staticship.org`, `dnshook.site`, `oast.fun`, `webhook.site`, and `smartdnslog.com` as OAST/out-of-band callback pivots. Match subdomains and callback paths in egress logs rather than treating these callback services as globally malicious domains.
 
 Huntback reports `pinggy.net` and `serveousercontent.com` as tunnel-fronted dropper pivots used to stage `/tmp/.p`.
+
+TENEX reports `white-guard.pro` and the Platypus certificate domains `garyvard.com`, `hickoryusedauto.com`, `gurerasfalt.com`, `rockinroyaltykids.com`, and `currydownsrvpark.com`. `v5v.in` is from a World of EUC Slack community report about an overnight pitboss login-injection wave, documented via Thomas Poppelgaard's checker notes. `dnsl.cc` and `gs.thc.org` are documented in the reviewed source notes as v1.11 domain pivots from the Unit 42 / Rapid7 / NetScaler community / Gotham update group; no more precise public primary source was available per domain.
 
 ## File And Path Indicators
 
@@ -365,7 +492,7 @@ Sources:
 - https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
 - https://labs.beazley.security/advisories/BSL-A1216
 - https://pitscaler.com/
-- https://www.poppelgaard.com/cve-2026-88771-through-cve-2026-88778-what-you-should-know-and-how-to-fix-your-netscaler-adc-netscaler-gateway
+- https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
 
 ```text
 ae22ef2517b5c0fb47f78745b9cb5260acee0e751b89bcd354640ff8bc8d29ec
@@ -386,6 +513,9 @@ e9fe43968c6c0955300e3bc4d7fb0b05a18570b4733aaf4f5c6f7f09be5a242c
 6f5a2a452a7901323abd21879c6cecccb47c06aeeaccb1b467212f3b11e4b1e7
   GreyNoise / Beazley - .ctxs.receiver web shell
 
+fb7f574a4c185fa8e520c47280939ce22899243a0083ee7120b7300c43baca29
+  ThreatUnpacked / Gotham - vulnerable ns_monuploadd_err.pl from 14.1-66.59 / 72.61
+
 c2f5532f3209dce0bd30ead47a2616a74ce8170324ef68dfd59acac3f5f1da34
   Beazley - Sliver download script
 
@@ -404,6 +534,12 @@ b9b0a4380db462c706597bd3e6a08d4d99fcbbf0919d63eb99b488d396c8ce63
 7add390ceee4a1373211b3e340451b34f08965fc4d805f94c9b8cebdc0775774
   eSentire - nsgtrust.deb PHP web shell
 
+73b74309f4728d169cc9edfb2767c5aadd75d39b62de93c935a86c777d2646bc
+  Arctic Wolf - /xd7h/x payload
+
+9c7bf01d2c2cb31a3609d27c1bc9abc60d86e37b7f9908547e0c75fb18b99aab
+  Arctic Wolf - nsmon.pl
+
 57f9f30c50240fd48d761de7961a430cdebf2c084a36bc76d376a1ce8e6dfa9d
   eSentire / Arctic Wolf - Platypus x stager shell script
 
@@ -415,6 +551,51 @@ c98aee75c5e199c9b5527984ce48675d665963f7cab8ce9f2e82465de6b58727
 
 ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1
   Rapid7 / PitScaler - .ctxs.receiver web shell sample
+
+74da9485815ee124e2ebe155dbcfb758b54bd97760956998abf64838c865f78b
+  Gotham / ThreatUnpacked - SAML-attack kit artifact
+
+ec6d42cc99e3c7870dc11606643e8b296e4aadafaf886f05506e1f515aa55eee
+  Gotham / ThreatUnpacked - SAML-attack kit artifact
+
+12b15fe585a21d33eeb863fc5a246596225a77185a314d55de3c980bbe11e9c0
+  Gotham / r/Citrix - SAML-attack kit artifact
+
+83307fb218b557a0a1cab46e094b038f9b795d2d02bd04ac7ce4e0d3eb4ec8c3
+  Gotham / Valhalla - SAML-attack kit artifact
+
+b9bc8d87ef77f63082445f5664e02a84db568f6d8147e077b97dc15df9f2a36b
+  Gotham - SAML-attack chisel tunnel binary
+
+12ff1448594844ffe072674e4da36c2bb92bce19bfdf494bcae0542ce6e1731a
+  Gotham - SAML-attack Sliver implant
+
+d04663bdab3183c94381d19eec7af59f90890497d5ad95c7af1c00d0fe8901dc
+  Gotham - SAML-attack Sliver implant
+
+0a7f88a74e82725e8ceaf9aa0b25b43c43105ff7653b29a0cbba94ce40b04447
+  Gotham - SAML-attack Sliver implant
+
+602b859d38c02c559f62e5c6f7ba30265b2ffd7faf528a3b0151727c7a1dc2d3
+  Gotham - SAML-attack Sliver implant
+
+899299dcaa6531e450cfc844f7948bc3180c6cbebc43cf751e65ee261f6732cd
+  Gotham - SAML-attack Sliver implant
+
+84f23d964ab636c81d95c3185f06a2ec628a9762dc767131d775500caf8dda0a
+  Gotham - SAML-attack Perl payload
+
+be559fb34104b8ce491082276084e76736f5a5ec6b8d05fe31adc60ec063e447
+  Gotham - SLAPSHOT / WHIPSHOT kit artifact
+
+dc07e82e31f874c386e74bb5882c269a3d33a774a7b9772b11830bf6d33bfc7e
+  Gotham - SLAPSHOT / WHIPSHOT kit artifact
+
+9f792058552da5cbbb08693694d31a31d360be8402a3c9d41584d34e3b569be7
+  Gotham - SLAPSHOT / WHIPSHOT kit artifact
+
+cd6b7acea0bdbcf8b6e8b2e62ea710ab3d9e59111202ac7a733d109c27c948fd
+  Gotham - SLAPSHOT / WHIPSHOT kit artifact
 
 8588d11874ab52a1637953dc5538984647023d00b529f695fbd0e40cf8e5e852
   SOCRadar - NetScaler C2 run.sh
