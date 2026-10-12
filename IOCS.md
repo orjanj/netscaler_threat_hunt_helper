@@ -11,6 +11,8 @@ The source labels in this file refer to the public reporting below.
 - Citrix NetScaler security bulletin blog / IOC guidance: https://community.citrix.com/techzone-blogs/110_security-updates/netscaler-adc-and-netscaler-gateway-security-bulletin-for-cve-2026-88771-through-cve-2026-88778/#Indicators_of_Compromise__cabcb4
 - Citrix CTX697174 (CVE-2026-88779): https://support.citrix.com/external/article/CTX697174/citrix-netscaler-adc-and-citrix-netscale.html
 - Citrix SAML guidance: https://community.citrix.com/techzone-blogs/110_security-updates/security-update-guidance-for-netscaler-saml-authentication-deployments/
+- CISA NetScaler alert, revised 2026-10-09: https://www.cisa.gov/news-events/alerts/2026/09/27/critical-zero-day-vulnerabilities-exploited-citrix-netscaler-adc-gateway
+- OpenText mirror of CISA NetScaler alert revision notes: https://community.opentextcybersecurity.com/vulnerability-vault-228/alert-critical-zero-day-vulnerabilities-exploited-in-citrix-netscaler-adc-gateway-last-revised-october-09-2026-365881
 - GTIG / Mandiant: https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
 - Palo Alto Networks Unit 42: https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/
 - CERT-EU: https://cert.europa.eu/blog/taking-execute-logging-a-bit-too-literally-cve-2026-88771
@@ -635,6 +637,18 @@ c0ebf54be0aeddd5b953df8a60bff7fc88d571e948405c24f6b5d6c1aa17558a
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
 
 ## Behavioral Hunting Pivots
+
+### CISA 2026-10-09 CVE-2026-88779 / CVE-2026-88771 correlation note
+
+CISA's 2026-10-09 alert revision and the OpenText mirror of that revision clarify that CVE-2026-88779 can be used to force a reboot on unpatched NetScaler deployments and thereby accelerate conditions that allow code previously injected through CVE-2026-88771 to execute. This update does not publish new standalone IP, domain, file, path, hash, account, or command-string IOCs.
+
+For hunting, correlate these event classes in one timeline instead of treating them as independent alerts:
+
+- CVE-2026-88771-style log injection or `pitboss` / NSPPE command-injection evidence
+- subsequent SAML-related crash, denial-of-service, forced reboot, or restart evidence
+- process starts, outbound connections, filesystem changes, account changes, or persistence artifacts shortly after the restart
+
+CVE-2026-88779 should still not be treated as confirmed standalone RCE from this note alone; the CISA-described risk is the combination with previously injected CVE-2026-88771 code on insufficiently updated systems.
 
 ### CVE-2026-107406 / NetScaler Console remediation note
 

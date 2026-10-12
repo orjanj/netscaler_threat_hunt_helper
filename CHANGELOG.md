@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.1 - 2026-10-12
+
+- Reviewed CISA's 2026-10-09 NetScaler alert revision and the OpenText mirror for new atomic IOCs.
+- Added CISA/OpenText source provenance and a CVE-2026-88779 / CVE-2026-88771 correlation note to `IOCS.md` and the script's `--show-iocs` output; no new standalone IP, domain, path, file, account, command-string, or hash IOCs were published by those sources.
+- Bumped script version to 1.12.1.
+
 ## 1.12 - 2026-10-10
 
 - Added missing checker-comparison indicators that map back to named upstream sources rather than citing the checker itself.

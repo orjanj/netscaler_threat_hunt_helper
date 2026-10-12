@@ -11,6 +11,10 @@
 #     https://community.citrix.com/techzone-blogs/110_security-updates/netscaler-adc-and-netscaler-gateway-security-bulletin-for-cve-2026-88771-through-cve-2026-88778/#Indicators_of_Compromise__cabcb4
 #   - Citrix CTX697174 security bulletin (CVE-2026-88779):
 #     https://support.citrix.com/external/article/CTX697174/citrix-netscaler-adc-and-citrix-netscale.html
+#   - CISA NetScaler alert, revised 2026-10-09:
+#     https://www.cisa.gov/news-events/alerts/2026/09/27/critical-zero-day-vulnerabilities-exploited-citrix-netscaler-adc-gateway
+#   - OpenText mirror of CISA NetScaler alert revision notes:
+#     https://community.opentextcybersecurity.com/vulnerability-vault-228/alert-critical-zero-day-vulnerabilities-exploited-in-citrix-netscaler-adc-gateway-last-revised-october-09-2026-365881
 #   - Google Threat Intelligence Group / Mandiant:
 #     https://cloud.google.com/blog/topics/threat-intelligence/defending-against-active-exploitation-of-citrix-netscaler-adc-and-gateway-appliances
 #   - Palo Alto Networks Unit 42:
@@ -70,7 +74,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.12"
+VERSION="1.12.1"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -1068,6 +1072,9 @@ hunt_timeline_gaps_offline() {
 
 show_iocs() {
   section "Built-in IOCs and hunting pivots"
+  printf 'CISA correlation note:\n' | emit_stream
+  printf '  CISA revised its NetScaler alert on 2026-10-09 to clarify that CVE-2026-88779 can force a reboot and accelerate execution of code previously injected through CVE-2026-88771 on unpatched systems.\n' | emit_stream
+  printf '  No new standalone IP, domain, path, account, command-string, or hash IOC was published in that CISA/OpenText update. Correlate log-injection evidence, SAML crash/reboot events, and post-restart process/network/file changes in one timeline.\n' | emit_stream
   printf 'Network indicators:\n' | emit_stream
   printf '  %s\n' "${IOC_IPS[@]}" | emit_stream
   printf '\nDomain indicators:\n' | emit_stream
