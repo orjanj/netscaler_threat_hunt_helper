@@ -19,6 +19,7 @@ The source labels in this file refer to the public reporting below.
 - Elastic detection rule: https://github.com/elastic/detection-rules/blob/main/rules/network/initial_access_netscaler_log_poisoning_command_injection.toml
 - GreyNoise: https://www.greynoise.io/blog/swarming-against-citrix-0-day-exploitation
 - TENEX: https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
+- Binary Defense: https://binarydefense.com/resources/blog/platypwned-when-a-citrix-0-day-lays-an-egg
 - Sygnia: https://www.sygnia.co/threat-reports-and-advisories/actively-exploited-netscaler-vulnerabilities/
 - eSentire TRU: https://www.esentire.com/blog/more-shells-than-a-seafood-buffet-tracking-citrix-netscaler-exploitation-activities-cve-2026-88771
 - Nextron Systems: https://www.nextron-systems.com/2026/10/06/update-on-citrix-netscaler-cve-2026-88771-and-cve-2026-88772-expanded-thor-detection-coverage/
@@ -164,9 +165,12 @@ Source: https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix
 177.4.12.11
 ```
 
-### TENEX Platypus / gsocket activity
+### TENEX / Binary Defense Platypus / gsocket activity
 
-Source: https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
+Sources:
+
+- https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
+- https://binarydefense.com/resources/blog/platypwned-when-a-citrix-0-day-lays-an-egg
 
 ```text
 104.200.67.56
@@ -340,6 +344,7 @@ Sources:
 - https://labs.beazley.security/advisories/BSL-A1216
 - https://pitscaler.com/
 - https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
+- https://binarydefense.com/resources/blog/platypwned-when-a-citrix-0-day-lays-an-egg
 - https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
 
 ```text
@@ -376,7 +381,33 @@ watchTowr reports `ctrxsrv.com`, `ddns.1433.eu.org`, `css.staticship.org`, `dnsh
 
 Huntback reports `pinggy.net` and `serveousercontent.com` as tunnel-fronted dropper pivots used to stage `/tmp/.p`.
 
-TENEX reports `white-guard.pro` and the Platypus certificate domains `garyvard.com`, `hickoryusedauto.com`, `gurerasfalt.com`, `rockinroyaltykids.com`, and `currydownsrvpark.com`. `v5v.in` is from a World of EUC Slack community report about an overnight pitboss login-injection wave, documented via Thomas Poppelgaard's checker notes. `dnsl.cc` and `gs.thc.org` are documented in the reviewed source notes as v1.11 domain pivots from the Unit 42 / Rapid7 / NetScaler community / Gotham update group; no more precise public primary source was available per domain.
+TENEX and Binary Defense report `white-guard.pro`, `garyvard.com`, `hickoryusedauto.com`, and `gurerasfalt.com` as Platypus infrastructure or certificate-linked domains. Binary Defense links `entretiensol.com`, `white-guard.pro`, `gurerasfalt.com`, `garyvard.com`, and `hickoryusedauto.com` through historical TLS certificates, passive DNS, and registration data; treat the certificate-linked domains as infrastructure-based hunting candidates, not automatic proof of NetScaler compromise. TENEX also reports `rockinroyaltykids.com` and `currydownsrvpark.com`. `v5v.in` is from a World of EUC Slack community report about an overnight pitboss login-injection wave, documented via Thomas Poppelgaard's checker notes. `dnsl.cc` and `gs.thc.org` are documented in the reviewed source notes as v1.11 domain pivots from the Unit 42 / Rapid7 / NetScaler community / Gotham update group; no more precise public primary source was available per domain.
+
+## TLS Certificate And Fingerprint Pivots
+
+Source: https://binarydefense.com/resources/blog/platypwned-when-a-citrix-0-day-lays-an-egg
+
+```text
+43311300529d031058895820fb79fb15afa171bb
+  Active Platypus ingress certificate SHA-1 thumbprint; subject CN=platypus-ingress; issuer CN=Platypus project default; valid 2026-09-28 to 2026-10-28.
+
+e75699b342f4d1650ac2958b082d9f71beb73f93
+  Prior Platypus ingress certificate SHA-1 thumbprint, seen 2026-09-05.
+
+a8ff7a3154533f5b7af3a7be455e9ac6b9923bff
+  Prior Platypus ingress certificate SHA-1 thumbprint, seen 2026-09-02.
+
+40d40d40d00000000043d43d00043dabadbb43f9614a00c843a4ecd074ab81
+  JARM fingerprint reported for 195.123.233.245.
+
+E401CB3138B193E7C236EC7DD8B239BA
+  Platypus ingress CA serial embedded in recovered bootstrap scripts.
+
+826097A54C1A3A4D9514329C1762924E
+  Platypus project CA serial embedded in recovered bootstrap scripts.
+```
+
+Related certificate strings include `platypus-ingress`, `Platypus project default`, and `Platypus project b51a65e0-e20b-444d-950e-8ff34b88c472`.
 
 ## File And Path Indicators
 
@@ -388,6 +419,7 @@ Sources:
 - https://pitscaler.com/
 - https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
 - https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
+- https://binarydefense.com/resources/blog/platypwned-when-a-citrix-0-day-lays-an-egg
 
 ```text
 /vpn/scripts/linux/nsgclient18.deb
@@ -445,10 +477,15 @@ Sources:
 /private/var/tmp/.host
 /nsconfig/.nsl
 /var/nslog/.nsl
+/var/tmp/.ns_09343.pl
+/var/tmp/.ns_data
 /var/core/.ns-cache
 /var/core/.ns-cache/client.crt
 /var/core/.ns-cache/client.key
+/var/core/.ns-cache/agent.lock
+/var/core/.ns-cache/state.db
 /netscaler.local
+/netscaler.local/ns_827664.pl
 /var/python/bin/customsnmpd
 /var/netscaler/logon/LogonPoint/ns_ctx.html
 /var/netscaler/logon/LogonPoint/logon.js
@@ -478,6 +515,9 @@ p.txt
 /var/tmp/.nsmon/.cfg
 /var/tmp/.nsmon/.state
 /var/tmp/.s
+agent.lock
+client.crt
+state.db
 ```
 
 Some of these may be short-lived because observed payloads included cleanup behavior. Missing files therefore do not prove that execution did not occur.
@@ -485,6 +525,8 @@ Some of these may be short-lived because observed payloads included cleanup beha
 `/vpn/scripts/linux/nsgclient18_32.deb` was reported in the Citrix NetScaler security bulletin blog discussion as an additional NetScaler Console IOC-scan finding adjacent to `/vpn/scripts/linux/nsgclient18.deb`; treat it as a community-observed hunting pivot and validate with surrounding request, process, and filesystem context.
 
 watchTowr also reports a backdoor administrator account named `gw_health`, SSH key placement attempts under `/root/.ssh`, `/nsconfig/ssh`, and `/nsconfig/.ssh`, a backdoor key fingerprint `SHA256:hGLHNG47ISWLin1Ik3o2KzgPLphQ3mjkGdp6DSeAiLo`, and a Dropbear SSH backdoor that may listen on TCP/37512.
+
+Binary Defense reports that the Platypus agent can masquerade as `.pl` files that are actually ELF binaries, including `/var/tmp/.ns_09343.pl` and `/netscaler.local/ns_827664.pl`. Prioritize triage of `.pl` files under `/var/tmp`, `/netscaler.local`, and `/var/core` with `file` or equivalent tooling, plus hidden Platypus data directories such as `/var/tmp/.ns_data` and `/var/core/.ns-cache/`.
 
 ## SHA-256 Indicators
 
@@ -495,6 +537,7 @@ Sources:
 - https://labs.beazley.security/advisories/BSL-A1216
 - https://pitscaler.com/
 - https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
+- https://binarydefense.com/resources/blog/platypwned-when-a-citrix-0-day-lays-an-egg
 
 ```text
 ae22ef2517b5c0fb47f78745b9cb5260acee0e751b89bcd354640ff8bc8d29ec
@@ -546,10 +589,16 @@ b9b0a4380db462c706597bd3e6a08d4d99fcbbf0919d63eb99b488d396c8ce63
   eSentire / Arctic Wolf - Platypus x stager shell script
 
 927c7fbef2e620c1ce482c3ed67ebf53da97693c1d6c7552c77aec84ba982cf8
-  eSentire / Arctic Wolf - Platypus bootstrap script
+  eSentire / Arctic Wolf / Binary Defense - Platypus bootstrap installer
 
 c98aee75c5e199c9b5527984ce48675d665963f7cab8ce9f2e82465de6b58727
   eSentire / TENEX - Platypus agent, FreeBSD amd64 build
+
+0dcac605a3a0c37001552369a6a77003226b35ddee7710b554fcd0e6809a76d1
+  Binary Defense - Platypus Windows agent, UPX-packed
+
+3754689fafacd2ff1c50781de2027afb1a736f9dadf48767afe560fc0f10a6f0
+  Binary Defense - Platypus Windows agent, unpacked
 
 ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1
   Rapid7 / PitScaler - .ctxs.receiver web shell sample
@@ -749,14 +798,14 @@ Examples include:
 - `NO_AUTH`
 - `customsnmpd`
 - `system-health`, `health-monitor`, `healthd`, and `gs-netcat`
-- `_platypus-mesh._tcp` mDNS traffic and TLS certificates with subject `platypus-ingress`
+- `_platypus-mesh._tcp` mDNS traffic, Platypus TLS certificates with subject `platypus-ingress`, issuer `Platypus project default`, Binary Defense SHA-1 certificate thumbprints, and JARM `40d40d40d00000000043d43d00043dabadbb43f9614a00c843a4ecd074ab81`
 - SUID/SGID permissions on `/bin/sh`
 - cron references to `.nsmon`, `curl`, `wget`, Python, Perl, or known staging paths
 - unexpected listeners in TCP/UDP port range `41000-41999`
 - SAML configuration lines `add authentication samlAction` or `add authentication samlIdPProfile`
 - nsaaad crash/restart lines such as `proc nsaaad`, `maximum number of restarts`, and `All monitored processes have exited, rebooting`
 - second-wave fetch/callback pivots involving `/v`, `f.pylrk.cc`, `webhook.site`, and `dnshook.site`
-- TENEX/Poppelgaard Platypus pivots involving `/var/core/.ns-cache`, `client.crt`, `client.key`, `/netscaler.local/ns_*.pl`, and replaced `/var/python/bin/customsnmpd`
+- TENEX/Poppelgaard/Binary Defense Platypus pivots involving `/var/tmp/.ns_*.pl`, `/var/tmp/.ns_data`, `/var/core/.ns-cache`, `agent.lock`, `client.crt`, `client.key`, `state.db`, `/netscaler.local/ns_*.pl`, and replaced `/var/python/bin/customsnmpd`
 - Corelight/PitScaler/Poppelgaard pivots involving `194.26.29.88`, `138.199.200.90`, `echvista.com`, `gsocket.io`, `nsepa.deb`, and `vp_probe_nonexist`
 - SOCRadar NetScaler C2 pivots involving `45.143.130.195`, `/tmp/.nsagent`, `/s/<bid>`, `/a/<bid>`, `/p/<bid>?h=<hex_hostname>&u=<hex_username>&src=agent`, `/c/<bid>`, and `/r/<bid>?d=<hex>`
 - exploit marker/output files such as `nx_verify.html`, `id009.txt`, `rce.txt`, `/var/tmp/boom`, and small files containing `uid=0(root)`

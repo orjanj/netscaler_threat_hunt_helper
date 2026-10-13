@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.13 - 2026-10-13
+
+- Reviewed Binary Defense's Platypwned NetScaler / Platypus analysis for new atomic and behavioral hunting indicators.
+- Added Binary Defense Platypus Windows agent hashes, certificate thumbprints, JARM/CA pivots, install/data path artifacts, and persistence strings.
+- Added a dedicated TLS certificate/JARM pivot search to offline and live hunts, and included those pivots in `--show-iocs`.
+- Clarified Binary Defense provenance for existing Platypus IP/domain indicators and bumped script version to 1.13.
+
 ## 1.12.1 - 2026-10-12
 
 - Reviewed CISA's 2026-10-09 NetScaler alert revision and the OpenText mirror for new atomic IOCs.

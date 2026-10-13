@@ -2,7 +2,7 @@
 # NetScaler CTX697096 Threat Hunt Helper
 # Defensive/read-only hunting for CVE-2026-88771 / CVE-2026-88772 / CVE-2026-88779 activity and related post-exploitation.
 #
-# Sources used for indicators and hunt logic (verified 2026-10-09):
+# Sources used for indicators and hunt logic (verified 2026-10-13):
 #   - Citrix CTX697096 security bulletin:
 #     https://support.citrix.com/external/article/CTX697096
 #   - NetScaler Console CVE-2026-107406 remediation guidance:
@@ -27,6 +27,8 @@
 #     https://www.greynoise.io/blog/swarming-against-citrix-0-day-exploitation
 #   - TENEX:
 #     https://tenex.ai/blog/what-tenex-observed-inside-active-exploitation-of-netscaler-zero-day/
+#   - Binary Defense:
+#     https://binarydefense.com/resources/blog/platypwned-when-a-citrix-0-day-lays-an-egg
 #   - eSentire TRU:
 #     https://www.esentire.com/blog/more-shells-than-a-seafood-buffet-tracking-citrix-netscaler-exploitation-activities-cve-2026-88771
 #   - Nextron Systems:
@@ -74,7 +76,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.12.1"
+VERSION="1.13"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -212,7 +214,10 @@ IOC_IPS=(
   "104.234.140.124"    # watchTowr post-exploitation source
   "104.168.34.24"      # watchTowr post-exploitation source
   "185.231.33.46"      # watchTowr post-exploitation source
-  "104.200.67.56"      # TENEX Platypus C2 / gsocket infrastructure
+  "104.200.67.56"      # TENEX / Binary Defense Platypus C2 / certificate-linked infrastructure
+  "195.123.233.245"    # Binary Defense Platypus staging and ingress infrastructure
+  "38.180.81.157"      # Binary Defense Platypus certificate-linked infrastructure
+  "95.133.231.109"     # Binary Defense Platypus certificate-linked infrastructure
   "130.94.20.222"      # watchTowr post-exploitation source
   "45.249.89.172"      # watchTowr post-exploitation source
   "172.247.44.85"      # watchTowr post-exploitation source
@@ -271,7 +276,7 @@ IOC_DOMAINS=(
   "www.pyrlnk.cc"      # Beazley hardcoded Sliver C2
   "pylrk.cc"           # Beazley/Poppelgaard reported second-wave payload delivery spelling
   "f.pylrk.cc"         # Beazley Sliver payload delivery
-  "entretiensol.com"   # eSentire / Arctic Wolf Platypus C2 and artifact host
+  "entretiensol.com"   # eSentire / Arctic Wolf / Binary Defense Platypus C2 and artifact host
   "instances.httpworkbench.com" # Lupovis / Poppelgaard DNS exfiltration subdomain pattern
   "echvista.com"       # PitScaler / Poppelgaard public IOC compilation
   "gsocket.io"         # Poppelgaard second-wave reverse-shell/C2 pivot
@@ -282,10 +287,10 @@ IOC_DOMAINS=(
   "smartdnslog.com"    # watchTowr OOB callback service
   "dnsl.cc"            # NetScaler community / Gotham v1.11 domain pivot
   "gs.thc.org"         # NetScaler community / Gotham v1.11 domain pivot
-  "white-guard.pro"    # TENEX Platypus / gsocket infrastructure
-  "garyvard.com"       # TENEX Platypus certificate domain
-  "hickoryusedauto.com" # TENEX Platypus certificate domain
-  "gurerasfalt.com"    # TENEX Platypus certificate domain
+  "white-guard.pro"    # TENEX / Binary Defense Platypus ingress infrastructure
+  "garyvard.com"       # TENEX / Binary Defense Platypus certificate domain
+  "hickoryusedauto.com" # TENEX / Binary Defense Platypus certificate domain
+  "gurerasfalt.com"    # TENEX / Binary Defense Platypus certificate domain
   "rockinroyaltykids.com" # TENEX Platypus certificate domain
   "currydownsrvpark.com" # TENEX Platypus certificate domain
   "v5v.in"             # World of EUC Slack community pitboss wave payload host
@@ -350,10 +355,15 @@ IOC_PATHS=(
   "/private/var/tmp/.host"
   "/nsconfig/.nsl"
   "/var/nslog/.nsl"
+  "/var/tmp/.ns_09343.pl"
+  "/var/tmp/.ns_data"
   "/var/core/.ns-cache"
   "/var/core/.ns-cache/client.crt"
   "/var/core/.ns-cache/client.key"
+  "/var/core/.ns-cache/agent.lock"
+  "/var/core/.ns-cache/state.db"
   "/netscaler.local"
+  "/netscaler.local/ns_827664.pl"
   "/var/python/bin/customsnmpd"
   "/var/netscaler/logon/LogonPoint/ns_ctx.html"
   "/var/netscaler/logon/LogonPoint/logon.js"
@@ -378,6 +388,18 @@ IOC_PATHS=(
   "/var/tmp/.nsmon/.cfg"
   "/var/tmp/.nsmon/.state"
   "/var/tmp/.s"
+  "agent.lock"
+  "client.crt"
+  "state.db"
+)
+
+IOC_TLS_PIVOTS=(
+  "43311300529d031058895820fb79fb15afa171bb" # Binary Defense active Platypus ingress cert SHA-1, 2026-09-28 to 2026-10-28
+  "e75699b342f4d1650ac2958b082d9f71beb73f93" # Binary Defense prior Platypus ingress cert SHA-1, seen 2026-09-05
+  "a8ff7a3154533f5b7af3a7be455e9ac6b9923bff" # Binary Defense prior Platypus ingress cert SHA-1, seen 2026-09-02
+  "40d40d40d00000000043d43d00043dabadbb43f9614a00c843a4ecd074ab81" # Binary Defense JARM for 195.123.233.245
+  "E401CB3138B193E7C236EC7DD8B239BA" # Binary Defense Platypus ingress CA serial
+  "826097A54C1A3A4D9514329C1762924E" # Binary Defense Platypus project CA serial
 )
 
 # Known hashes from Unit 42 / LevelBlue.
@@ -398,8 +420,10 @@ IOC_HASHES["7add390ceee4a1373211b3e340451b34f08965fc4d805f94c9b8cebdc0775774"]="
 IOC_HASHES["73b74309f4728d169cc9edfb2767c5aadd75d39b62de93c935a86c777d2646bc"]="Arctic Wolf /xd7h/x payload"
 IOC_HASHES["9c7bf01d2c2cb31a3609d27c1bc9abc60d86e37b7f9908547e0c75fb18b99aab"]="Arctic Wolf nsmon.pl"
 IOC_HASHES["57f9f30c50240fd48d761de7961a430cdebf2c084a36bc76d376a1ce8e6dfa9d"]="eSentire / Arctic Wolf Platypus x stager"
-IOC_HASHES["927c7fbef2e620c1ce482c3ed67ebf53da97693c1d6c7552c77aec84ba982cf8"]="eSentire / Arctic Wolf Platypus bootstrap script"
+IOC_HASHES["927c7fbef2e620c1ce482c3ed67ebf53da97693c1d6c7552c77aec84ba982cf8"]="eSentire / Arctic Wolf / Binary Defense Platypus bootstrap installer"
 IOC_HASHES["c98aee75c5e199c9b5527984ce48675d665963f7cab8ce9f2e82465de6b58727"]="eSentire / TENEX Platypus agent FreeBSD amd64"
+IOC_HASHES["0dcac605a3a0c37001552369a6a77003226b35ddee7710b554fcd0e6809a76d1"]="Binary Defense Platypus Windows agent, UPX-packed"
+IOC_HASHES["3754689fafacd2ff1c50781de2027afb1a736f9dadf48767afe560fc0f10a6f0"]="Binary Defense Platypus Windows agent, unpacked"
 IOC_HASHES["ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1"]="Rapid7 / PitScaler .ctxs.receiver webshell sample"
 IOC_HASHES["74da9485815ee124e2ebe155dbcfb758b54bd97760956998abf64838c865f78b"]="Gotham / ThreatUnpacked SAML-attack kit artifact"
 IOC_HASHES["ec6d42cc99e3c7870dc11606643e8b296e4aadafaf886f05506e1f515aa55eee"]="Gotham / ThreatUnpacked SAML-attack kit artifact"
@@ -506,9 +530,30 @@ LOG_PATTERNS=(
   "system-health"
   "health-monitor"
   "healthd"
+  "node-health"
+  "sys-health"
   "gs-netcat"
   "_platypus-mesh\._tcp"
   "platypus-ingress"
+  "Platypus project default"
+  "Platypus project b51a65e0-e20b-444d-950e-8ff34b88c472"
+  "43311300529d031058895820fb79fb15afa171bb"
+  "e75699b342f4d1650ac2958b082d9f71beb73f93"
+  "a8ff7a3154533f5b7af3a7be455e9ac6b9923bff"
+  "40d40d40d00000000043d43d00043dabadbb43f9614a00c843a4ecd074ab81"
+  "E401CB3138B193E7C236EC7DD8B239BA"
+  "826097A54C1A3A4D9514329C1762924E"
+  "S8GEj/Ibzw/Zy9Z5u4saQyn0h59enf9Mk3J2m70tTMs="
+  "0\.1\.0-SNAPSHOT-4b91c7db"
+  "4b91c7db061615827f2d333bae4ffe10ddcbb199"
+  "rootesc"
+  "selfpersist"
+  "self-persistence\); do not edit"
+  "agent\.lock"
+  "state\.db"
+  "\.ns_09343\.pl"
+  "ns_827664\.pl"
+  "/var/tmp/\.ns_data"
   "ns_monuploadd_err\.pl"
   "/var/netscaler/\.ns_suidcmd"
   "chmod[[:space:]]+6555[[:space:]]+/bin/sh"
@@ -562,12 +607,19 @@ LOG_PATTERNS=(
   "Pylrkfbsd"
   "nsgtrust\.deb"
   "entretiensol\.com"
+  "white-guard\.pro"
+  "gurerasfalt\.com"
+  "garyvard\.com"
+  "hickoryusedauto\.com"
   "platypus-agent/public-ip-probe"
   "application/x-protobuf-platypus-v2"
   "PLATYPUS_INSTALL_TOKEN"
   "plt_wqmnjp5jusrcpzicqa2t\.gg3s7yppdptle5dyefxj"
   "/v1/artifacts/freebsd/amd64/latest"
+  "/v1/artifacts/(darwin|freebsd|linux|windows)/amd64/latest"
   "/api/v1/agents/enroll"
+  "/api/v1/agents/enroll\.5"
+  "/api/v1/install/"
   "/api/v1/agent/link"
   "/xd7h/x"
   "/xd7h/nsmon\.pl"
@@ -908,10 +960,25 @@ build_network_ioc_regex() {
   printf '%s' "$regex"
 }
 
+build_tls_pivot_regex() {
+  local regex="" item
+  for item in "${IOC_TLS_PIVOTS[@]}"; do
+    [[ -n "$regex" ]] && regex+="|"
+    regex+="$item"
+  done
+  printf '%s' "$regex"
+}
+
 hunt_log_behavior_offline() {
   local regex
   regex=$(build_regex_from_array LOG_PATTERNS)
   search_tree_regex "$ROOT" "$regex" "Log and exploit behavior"
+}
+
+hunt_tls_pivots_offline() {
+  local regex
+  regex=$(build_tls_pivot_regex)
+  search_tree_regex "$ROOT" "$regex" "TLS certificate and JARM pivots"
 }
 
 hunt_ip_iocs_offline() {
@@ -965,9 +1032,9 @@ hunt_named_artifacts_offline() {
     while IFS= read -r -d '' f; do
       log ALERT "File/path match: $p -> $f"
       found=1
-    done < <(find "$ROOT" -type f -name "$base" -print0 2>/dev/null)
+    done < <(find "$ROOT" \( -type f -o -type d \) -name "$base" -print0 2>/dev/null)
   done
-  (( found == 0 )) && log INFO "No known artifact filenames found in the material."
+  (( found == 0 )) && log INFO "No known artifact filenames or directory names found in the material."
 }
 
 hash_file() {
@@ -1029,7 +1096,7 @@ hunt_hashes_offline() {
     [[ "$NO_REPORT" != "1" && "$f" == "$REPORT" ]] && continue
     # Limit to plausible payload/config artifacts to avoid hashing gigantic dumps.
     case "$f" in
-      *.deb|*.sig|*.php|*.pl|*.py|*.sh|*.tgz|*.html|*.js|*.txt|*.conf|*/.x|*/x|*/.host|*/host|*/nsmon.pl)
+      *.deb|*.sig|*.php|*.pl|*.py|*.sh|*.tgz|*.html|*.js|*.txt|*.conf|*.exe|*/.x|*/x|*/.host|*/host|*/nsmon.pl)
         h=$(hash_file "$f" || true)
         ((count+=1))
         if [[ -n "$h" && -n "${IOC_HASHES[$h]+x}" ]]; then
@@ -1048,6 +1115,7 @@ offline_all() {
   hunt_cve_2026_88779_offline
   hunt_log_behavior_offline
   hunt_ip_iocs_offline
+  hunt_tls_pivots_offline
   hunt_webshell_patterns_offline
   hunt_named_artifacts_offline
   hunt_timeline_gaps_offline
@@ -1081,6 +1149,8 @@ show_iocs() {
   printf '  %s\n' "${IOC_DOMAINS[@]}" | emit_stream
   printf '\nFile/path indicators:\n' | emit_stream
   printf '  %s\n' "${IOC_PATHS[@]}" | emit_stream
+  printf '\nTLS/certificate pivots:\n' | emit_stream
+  printf '  %s\n' "${IOC_TLS_PIVOTS[@]}" | emit_stream
   printf '\nKnown SHA-256 hashes:\n' | emit_stream
   local h
   for h in "${!IOC_HASHES[@]}"; do
@@ -1110,6 +1180,20 @@ live_artifacts() {
       list_recent_files "$d" | emit_stream || true
     fi
   done
+}
+
+live_tls_pivots_in_logs() {
+  section "LIVE: TLS certificate and JARM pivots in local logs"
+  local regex
+  regex=$(build_tls_pivot_regex)
+  local roots=(/var/log /var/nslog /var/tmp /var/core)
+  local d found=0
+  for d in "${roots[@]}"; do
+    [[ -d "$d" && -r "$d" ]] || continue
+    search_tree_regex "$d" "$regex" "TLS certificate and JARM pivots under $d"
+    found=1
+  done
+  (( found == 0 )) && log WARN "No readable standard log/core directories found for TLS pivot search."
 }
 
 live_saml_second_wave() {
@@ -1294,7 +1378,7 @@ live_hash_candidates() {
     [[ -d "$d" ]] || continue
     while IFS= read -r -d '' f; do
       case "$f" in
-        *.deb|*.sig|*.php|*.pl|*.py|*.sh|*.tgz|*.html|*.js|*/ns_helper|*/.ctxs.receiver|*/.local_journal)
+        *.deb|*.sig|*.php|*.pl|*.py|*.sh|*.tgz|*.html|*.js|*.exe|*/ns_helper|*/.ctxs.receiver|*/.local_journal)
           h=$(hash_file "$f" || true)
           if [[ -n "$h" && -n "${IOC_HASHES[$h]+x}" ]]; then
             log ALERT "SHA256 MATCH: $h | ${IOC_HASHES[$h]} | $f"
@@ -1309,6 +1393,7 @@ live_hash_candidates() {
 
 live_all() {
   live_artifacts
+  live_tls_pivots_in_logs
   live_cve_2026_88779
   live_saml_second_wave
   live_web_config
@@ -1347,8 +1432,9 @@ Offline threat hunt - individual checks:
   4) Known file/path indicators
   5) HTTP log pivots (.deb/.sig/.ico/vpn paths)
   6) SHA-256 search of candidate files
-  7) Show IOC list
-  8) CVE-2026-88779 SAML configuration precondition
+  7) TLS certificate and JARM pivots
+  8) Show IOC list
+  9) CVE-2026-88779 SAML configuration precondition
   0) Back
 MENU
     printf 'Choice: '
@@ -1360,8 +1446,9 @@ MENU
       4) hunt_named_artifacts_offline ;;
       5) hunt_timeline_gaps_offline ;;
       6) hunt_hashes_offline ;;
-      7) show_iocs ;;
-      8) hunt_cve_2026_88779_offline ;;
+      7) hunt_tls_pivots_offline ;;
+      8) show_iocs ;;
+      9) hunt_cve_2026_88779_offline ;;
       0) return ;;
       *) printf 'Invalid choice.\n' ;;
     esac
@@ -1392,9 +1479,10 @@ Live NetScaler threat hunt (read-only):
   9) Privileged account / ns.conf (sec_monitor etc.)
  10) Listeners/active connections + IOC IPs/domains
  11) IOC IPs/domains in local logs
- 12) SHA-256 checks on high-risk paths
- 13) Show IOC list
- 14) CVE-2026-88779 SAML configuration precondition
+ 12) TLS certificate and JARM pivots in local logs
+ 13) SHA-256 checks on high-risk paths
+ 14) Show IOC list
+ 15) CVE-2026-88779 SAML configuration precondition
   0) Back
 MENU
     printf 'Choice: '
@@ -1411,9 +1499,10 @@ MENU
       9) live_accounts_config ;;
       10) live_network ;;
       11) live_ioc_logs ;;
-      12) live_hash_candidates ;;
-      13) show_iocs ;;
-      14) live_cve_2026_88779 ;;
+      12) live_tls_pivots_in_logs ;;
+      13) live_hash_candidates ;;
+      14) show_iocs ;;
+      15) live_cve_2026_88779 ;;
       0) return ;;
       *) printf 'Invalid choice.\n' ;;
     esac
