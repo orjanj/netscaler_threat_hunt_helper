@@ -2,7 +2,7 @@
 # NetScaler CTX697096 Threat Hunt Helper
 # Defensive/read-only hunting for CVE-2026-88771 / CVE-2026-88772 / CVE-2026-88779 activity and related post-exploitation.
 #
-# Sources used for indicators and hunt logic (verified 2026-10-13):
+# Sources used for indicators and hunt logic (verified 2026-10-17):
 #   - Citrix CTX697096 security bulletin:
 #     https://support.citrix.com/external/article/CTX697096
 #   - NetScaler Console CVE-2026-107406 remediation guidance:
@@ -60,6 +60,8 @@
 #     https://www.reddit.com/r/u_ArcticWolf_Official/comments/1wudni7/pack_alert_september_30_2026_arctic_wolf_labs/
 #   - Wolf Tools Pack Alert (observed post-exploitation indicators, secondary set):
 #     https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
+#   - Zscaler ThreatLabz / Security Boulevard syndicated analysis:
+#     https://securityboulevard.com/2026/10/cve-2026-88771-inside-the-exploitation-of-a-critical-netscaler-rce-vulnerability/
 #
 # IMPORTANT:
 #   * A hit is a hunting lead, not proof of compromise.
@@ -76,7 +78,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.13"
+VERSION="1.14"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -266,6 +268,7 @@ IOC_IPS=(
   "212.86.125.40"      # watchTowr post-exploitation source
   "198.13.159.233"     # watchTowr post-exploitation source
   "45.12.239.191"      # watchTowr post-exploitation source
+  "209.141.43.95"      # Zscaler ThreatLabz FreeBSD implant download server; also reported by Sansec in StyleSmuggler context
 )
 
 IOC_DOMAINS=(
@@ -327,8 +330,26 @@ IOC_PATHS=(
   "/tmp/update_result_3567cs.tgz"
   "/var/netscaler/logon/insight-new.js"
   "/var/netscaler/logon/LogonPoint/xua.html"
+  "/var/vpn/bookmark/Nx_7508.html"
+  "/var/vpn/bookmark/Nx_7508.php"
+  "/var/vpn/bookmark/Nx_7508.pl"
   "/var/vpn/bookmark/nx_verify.html"
+  "/netscaler/ns_gui/vpn/Nx_7508.html"
+  "/netscaler/ns_gui/vpn/Nx_7508.php"
+  "/netscaler/ns_gui/vpn/Nx_7508.pl"
   "/netscaler/ns_gui/vpn/nx_verify.html"
+  "/var/netscaler/gui/vpn/Nx_7508.html"
+  "/var/netscaler/gui/vpn/Nx_7508.php"
+  "/var/netscaler/gui/vpn/Nx_7508.pl"
+  "/var/netscaler/logon/LogonPoint/Nx_7508.html"
+  "/var/netscaler/logon/LogonPoint/Nx_7508.php"
+  "/var/netscaler/logon/LogonPoint/Nx_7508.pl"
+  "/var/vpn/theme/Nx_7508.html"
+  "/var/vpn/theme/Nx_7508.php"
+  "/var/vpn/theme/Nx_7508.pl"
+  "/var/netscaler/gui/admin_ui/apex/Nx_7508.html"
+  "/var/netscaler/gui/admin_ui/apex/Nx_7508.php"
+  "/var/netscaler/gui/admin_ui/apex/Nx_7508.pl"
   "/netscaler/ns_gui/vpn/id009.txt"
   "/netscaler/ns_gui/vpn/rce.txt"
   "/var/tmp/.nsmon"
@@ -375,6 +396,7 @@ IOC_PATHS=(
   "/lula"
   "/vpn/c"
   "/var/1"
+  "/var/kw2s11"
   "/var/walk"
   "/usr/bin/walk"
   "/var/vpn/ns_helper"
@@ -388,6 +410,14 @@ IOC_PATHS=(
   "/var/tmp/.nsmon/.cfg"
   "/var/tmp/.nsmon/.state"
   "/var/tmp/.s"
+  "/files/kw2-freebsd-x64-s11"
+  "Nx_7508.html"
+  "Nx_7508.php"
+  "Nx_7508.pl"
+  "Nx_5936"
+  "Nx_5936.html"
+  "Nx_5936.php"
+  "Nx_5936.pl"
   "agent.lock"
   "client.crt"
   "state.db"
@@ -473,6 +503,9 @@ LOG_PATTERNS=(
   "HTTP_NSC_CLIENTTYPE"
   "HTTP_X_UX"
   "INDEX:"
+  "Nx_7508"
+  "Nx_5936"
+  "Nx-zD"
   "ns-88771-poc"
   "NX-CVE-OK"
   "httpworkbench\.com"
@@ -492,6 +525,10 @@ LOG_PATTERNS=(
   "serveousercontent\.com"
   "176\.65\.148\.54"
   "176\.65\.148\.54:8080/ns_helper"
+  "209\.141\.43\.95"
+  "209\.141\.43\.95/files/kw2-freebsd-x64-s11"
+  "/files/kw2-freebsd-x64-s11"
+  "/var/kw2s11"
   '^/(bundles|scripts|script|javascripts|js)(/(bundles|scripts|script|javascripts|js)){0,5}/(route|app|app\.min|array)\.php(\?[A-Za-z]=[A-Za-z0-9]+)?$'
   "213\.209\.159\.55:443/t/"
   "158\.94\.211\.205:8080"
@@ -656,7 +693,9 @@ LOG_PATTERNS=(
 
 WEBSHELL_PATTERNS=(
   "application/x-httpd-php"
+  "php_engine[[:space:]]+on"
   "php_flag[[:space:]]+engine[[:space:]]+on"
+  "AddHandler[[:space:]]+cgi-script[[:space:]]+\.pl"
   "AliasMatch"
   "AddHandler"
   "AddType"
@@ -1254,8 +1293,8 @@ live_web_config() {
   for f in /etc/httpd.conf /nsconfig/httpd.conf /flash/nsconfig/httpd.conf; do
     [[ -r "$f" ]] || continue
     log INFO "Checking $f"
-    grep -Ein 'application/x-httpd-php|php_flag|AliasMatch|AddHandler|AddType|\.deb|\.sig|\.tgz|\.rpm|receiver\.min|\.ctxs\.receiver|LogonUISimple\.html\.style' "$f" 2>/dev/null | emit_stream || true
-    if grep -Eiq 'application/x-httpd-php.*\.(deb|sig|tgz|rpm)|AliasMatch.*(/vpn/media|/vpn/theme|/vpn/images)|receiver\.min|\.ctxs\.receiver|LogonUISimple\.html\.style' "$f" 2>/dev/null; then
+    grep -Ein 'application/x-httpd-php|php_engine|php_flag|AliasMatch|AddHandler|AddType|cgi-script|\.deb|\.sig|\.tgz|\.rpm|receiver\.min|\.ctxs\.receiver|LogonUISimple\.html\.style|Nx_7508|Nx_5936' "$f" 2>/dev/null | emit_stream || true
+    if grep -Eiq 'application/x-httpd-php.*\.(deb|sig|tgz|rpm)|php_engine[[:space:]]+on|AddHandler[[:space:]]+cgi-script[[:space:]]+\.pl|AliasMatch.*(/vpn/media|/vpn/theme|/vpn/images)|receiver\.min|\.ctxs\.receiver|LogonUISimple\.html\.style|Nx_7508|Nx_5936' "$f" 2>/dev/null; then
       log ALERT "Suspicious web server configuration in $f."
       found=1
     fi

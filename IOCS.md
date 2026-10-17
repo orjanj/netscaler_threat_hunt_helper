@@ -42,6 +42,8 @@ The source labels in this file refer to the public reporting below.
 - watchTowr Labs: https://labs.watchtowr.com/
 - watchTowr post-exploitation analysis: https://watchtowr.com/intelligence/post-exploitation-analysis-artifacts-citrix-netscaler-cve-2026-88771/
 - watchTowr public IOC repository: https://github.com/watchtowrlabs/citrix-netscaler-cve-2026-88771-iocs
+- Zscaler ThreatLabz / Security Boulevard syndicated analysis: https://securityboulevard.com/2026/10/cve-2026-88771-inside-the-exploitation-of-a-critical-netscaler-rce-vulnerability/
+- Sansec StyleSmuggler infrastructure context: https://sansec.io/research/stylesmuggler
 
 ## Network Indicators
 
@@ -179,6 +181,19 @@ Sources:
 95.133.231.109
 199.233.217.13
 ```
+
+### Zscaler ThreatLabz / Sansec contextual infrastructure
+
+Sources:
+
+- https://securityboulevard.com/2026/10/cve-2026-88771-inside-the-exploitation-of-a-critical-netscaler-rce-vulnerability/
+- https://sansec.io/research/stylesmuggler
+
+```text
+209.141.43.95
+```
+
+ThreatLabz reports `209.141.43.95` as the download server for a Rust-based FreeBSD implant in CVE-2026-88771 exploitation attempts, with retrieval from `/files/kw2-freebsd-x64-s11` and execution from `/var/kw2s11`. Sansec previously associated the same IP with Adobe Commerce/Magento StyleSmuggler infrastructure. Treat this as a contextual hunting indicator requiring direction, timing, and payload context, not as proof of shared attribution or as an unconditional blocklist entry.
 
 ### NetScaler community reports
 
@@ -420,6 +435,7 @@ Sources:
 - https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
 - https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
 - https://binarydefense.com/resources/blog/platypwned-when-a-citrix-0-day-lays-an-egg
+- https://securityboulevard.com/2026/10/cve-2026-88771-inside-the-exploitation-of-a-critical-netscaler-rce-vulnerability/
 
 ```text
 /vpn/scripts/linux/nsgclient18.deb
@@ -449,8 +465,26 @@ Sources:
 /tmp/update_result_3567cs.tgz
 /var/netscaler/logon/insight-new.js
 /var/netscaler/logon/LogonPoint/xua.html
+/var/vpn/bookmark/Nx_7508.html
+/var/vpn/bookmark/Nx_7508.php
+/var/vpn/bookmark/Nx_7508.pl
 /var/vpn/bookmark/nx_verify.html
+/netscaler/ns_gui/vpn/Nx_7508.html
+/netscaler/ns_gui/vpn/Nx_7508.php
+/netscaler/ns_gui/vpn/Nx_7508.pl
 /netscaler/ns_gui/vpn/nx_verify.html
+/var/netscaler/gui/vpn/Nx_7508.html
+/var/netscaler/gui/vpn/Nx_7508.php
+/var/netscaler/gui/vpn/Nx_7508.pl
+/var/netscaler/logon/LogonPoint/Nx_7508.html
+/var/netscaler/logon/LogonPoint/Nx_7508.php
+/var/netscaler/logon/LogonPoint/Nx_7508.pl
+/var/vpn/theme/Nx_7508.html
+/var/vpn/theme/Nx_7508.php
+/var/vpn/theme/Nx_7508.pl
+/var/netscaler/gui/admin_ui/apex/Nx_7508.html
+/var/netscaler/gui/admin_ui/apex/Nx_7508.php
+/var/netscaler/gui/admin_ui/apex/Nx_7508.pl
 /netscaler/ns_gui/vpn/id009.txt
 /netscaler/ns_gui/vpn/rce.txt
 /var/tmp/.nsmon
@@ -497,6 +531,7 @@ Sources:
 /lula
 /vpn/c
 /var/1
+/var/kw2s11
 /var/walk
 /usr/bin/walk
 /var/vpn/ns_helper
@@ -515,6 +550,14 @@ p.txt
 /var/tmp/.nsmon/.cfg
 /var/tmp/.nsmon/.state
 /var/tmp/.s
+/files/kw2-freebsd-x64-s11
+Nx_7508.html
+Nx_7508.php
+Nx_7508.pl
+Nx_5936
+Nx_5936.html
+Nx_5936.php
+Nx_5936.pl
 agent.lock
 client.crt
 state.db
@@ -527,6 +570,8 @@ Some of these may be short-lived because observed payloads included cleanup beha
 watchTowr also reports a backdoor administrator account named `gw_health`, SSH key placement attempts under `/root/.ssh`, `/nsconfig/ssh`, and `/nsconfig/.ssh`, a backdoor key fingerprint `SHA256:hGLHNG47ISWLin1Ik3o2KzgPLphQ3mjkGdp6DSeAiLo`, and a Dropbear SSH backdoor that may listen on TCP/37512.
 
 Binary Defense reports that the Platypus agent can masquerade as `.pl` files that are actually ELF binaries, including `/var/tmp/.ns_09343.pl` and `/netscaler.local/ns_827664.pl`. Prioritize triage of `.pl` files under `/var/tmp`, `/netscaler.local`, and `/var/core` with `file` or equivalent tooling, plus hidden Platypus data directories such as `/var/tmp/.ns_data` and `/var/core/.ns-cache/`.
+
+ThreatLabz reports `Nx_7508.html`, `Nx_7508.php`, and `Nx_7508.pl` written across several NetScaler web directories, with `Nx-zD` as the output marker. The accessible report also contains a Base64 sample discrepancy referencing `Nx_5936`; both `Nx_7508` and `Nx_5936` are included as hunting candidates until the discrepancy is resolved. No independently verified SHA-256 hash for the FreeBSD implant was provided in the reviewed report.
 
 ## SHA-256 Indicators
 
@@ -744,13 +789,14 @@ Examples include:
 - `orphan rings`
 - `${IFS}` in attacker-controlled command strings
 - unexpected PHP execution for `.deb`, `.sig`, `.tgz`, `.rpm`, or other non-PHP resources
-- suspicious `AddHandler`, `AddType`, `AliasMatch`, and `php_flag` directives
+- suspicious `AddHandler`, `AddType`, `AliasMatch`, `php_engine`, and `php_flag` directives, especially Perl CGI enablement such as `AddHandler cgi-script .pl`
 - web-shell functions such as `eval()`, `passthru()`, `shell_exec()`, `exec()`, `system()`, `popen()`, and `base64_decode()`
 - `wc -c <` web-shell file-size command behavior
 - `HTTP_NSC_LDAP`
 - `HTTP_NSC_CLIENTTYPE`
 - `HTTP_X_UX*`
 - `INDEX:` User-Agent payload staging
+- ThreatLabz webshell/fingerprinting pivots including `Nx_7508`, `Nx_5936`, `Nx-zD`, `/var/kw2s11`, `/files/kw2-freebsd-x64-s11`, and `209.141.43.95`
 - `ns-88771-poc`
 - `NX-CVE-OK`
 - `httpworkbench.com`

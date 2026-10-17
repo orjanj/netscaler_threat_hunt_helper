@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.14 - 2026-10-17
+
+- Reviewed Zscaler ThreatLabz's CVE-2026-88771 analysis via the Security Boulevard syndicated copy.
+- Added `Nx_7508` webshell/fingerprinting artifacts, `Nx_5936` discrepancy pivots, `Nx-zD`, `/var/kw2s11`, `/files/kw2-freebsd-x64-s11`, and `209.141.43.95` as hunting indicators.
+- Expanded Apache/PHP configuration detection for `php_engine on` and Perl CGI enablement with `AddHandler cgi-script .pl`.
+- Documented the Sansec StyleSmuggler infrastructure overlap caveat and noted the lack of a verified FreeBSD implant SHA-256 in the reviewed report.
+- Bumped script version to 1.14.
+
 ## 1.13 - 2026-10-13
 
 - Reviewed Binary Defense's Platypwned NetScaler / Platypus analysis for new atomic and behavioral hunting indicators.

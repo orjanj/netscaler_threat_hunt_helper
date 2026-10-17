@@ -367,7 +367,7 @@ Do not publish raw reports without reviewing and sanitizing them first.
 
 ## Coverage summary
 
-The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-10**.
+The script combines indicators and behavioral hunting ideas from public reporting available as of **2026-10-17**.
 
 - Citrix / NetScaler: affected product context, vulnerability preconditions, SAML applicability checks, and remediation guidance.
 - NetScaler Console CVE-2026-107406 guidance: Console CVE Detection and upgrade workflow context; no standalone exact IOCs were published on the remediation page reviewed.
@@ -389,6 +389,7 @@ The script combines indicators and behavioral hunting ideas from public reportin
 - PitScaler / Poppelgaard: public IOC compilation and October SAML issue context, including contested `pyrlnk.cc` / `pylrk.cc` spellings, CVE-2026-88779/CVE-2026-107406 notes, nsaaad crash pivots, reported config/private-key dump behavior, Corelight reverse-shell/exfiltration pivots, `nsepa.deb` / `vp_probe_nonexist` probes, and dedicated October 7 IOC-table updates.
 - Huntback: ten-day decoy telemetry for CVE-2026-88771, including OOB proving, config theft, direct POST exfiltration, `ns_helper`, tunnel-fronted droppers (`pinggy.net`, `serveousercontent.com`), Perl droppers, hidden PHP webshell delivery, User-Agent payloads, and log-channel C2 markers.
 - Citrix NetScaler security bulletin blog: NetScaler Console IOC-scan guidance and the community-observed `/vpn/scripts/linux/nsgclient18_32.deb` pivot adjacent to `nsgclient18.deb`.
+- Zscaler ThreatLabz / Security Boulevard syndicated analysis: `Nx_7508` webshell/fingerprinting artifacts, `Nx_5936` discrepancy pivot, `Nx-zD` output marker, FreeBSD implant retrieval/execution path `/files/kw2-freebsd-x64-s11` to `/var/kw2s11`, `209.141.43.95` contextual infrastructure overlap with Sansec StyleSmuggler reporting, and PHP/Perl CGI enablement in `httpd.conf`.
 
 ## Indicator reference
 
