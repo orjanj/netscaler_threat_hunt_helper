@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.15 - 2026-10-17
+
+- Added GTIG/Mandiant WHIPSHOT and SLAPSHOT hunting pivots: `<FATO>`, `</FATO>`, additional `HTTP_NSC_*` / `NSC_*` header names, `proc_open()`, `assert()`, and `UXD_IDLE_EXIT`.
+- Added `nsginstaller*.deb` package-masquerading webshell path coverage.
+- Added watchTowr SSH key content pivots.
+- Bumped script version to 1.15.
+
 ## 1.14 - 2026-10-17
 
 - Reviewed Zscaler ThreatLabz's CVE-2026-88771 analysis via the Security Boulevard syndicated copy.

@@ -372,7 +372,7 @@ The script combines indicators and behavioral hunting ideas from public reportin
 - Citrix / NetScaler: affected product context, vulnerability preconditions, SAML applicability checks, and remediation guidance.
 - NetScaler Console CVE-2026-107406 guidance: Console CVE Detection and upgrade workflow context; no standalone exact IOCs were published on the remediation page reviewed.
 - Citrix CTX697174: read-only search for SAML SP/IdP configuration preconditions for CVE-2026-88779; patch/build verification and exploitation detection remain manual/out of scope.
-- GTIG / Mandiant: DTLS/NSPPE log pivots, Apache/PHP manipulation, WHIPSHOT/SLAPSHOT-related pivots, SUID/SGID checks, suspicious VPN paths, and network indicators.
+- GTIG / Mandiant: DTLS/NSPPE log pivots, Apache/PHP manipulation, WHIPSHOT/SLAPSHOT-related pivots including `<FATO>`, additional `HTTP_NSC_*` / `NSC_*` headers and `UXD_IDLE_EXIT`, SUID/SGID checks, suspicious VPN paths, and network indicators.
 - Palo Alto Networks Unit 42: pre-disclosure infrastructure, web-shell paths, anomalous `GetUserName` activity, `.deb` web-shell filenames, SHA-256 indicators, fingerprinting URLs, log-poisoning pivots, Apache alias pivots, and web-shell command behavior.
 - CERT-EU / Elastic: base64 `INDEX:` staging, `ns_monuploadd_err.pl` context, and generic `pitboss` / packet-engine records containing shell metacharacters or URL-encoded shell syntax.
 - GreyNoise / Lupovis: pre-disclosure exploitation source, `.ctxs.receiver` web-shell path/hash, `receiver.min*.css` alias pivots, and Lupovis canary/DNS/fetch probes surfaced in public timelines.

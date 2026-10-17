@@ -446,6 +446,9 @@ Sources:
 /vpn/scripts/linux/nsgpackage64.deb
 /vpn/scripts/linux/nsgbuild.deb
 /vpn/scripts/linux/nsgtrust.deb
+/vpn/scripts/linux/nsginstaller*.deb
+/var/netscaler/gui/vpn/scripts/linux/nsginstaller*.deb
+/netscaler/ns_gui/vpn/scripts/linux/nsginstaller*.deb
 /logon/LogonPoint/Authentication/GetUserName
 /logon/LogonPoint/tmindex.html
 /nf/auth/doAuthentication.do
@@ -568,6 +571,8 @@ Some of these may be short-lived because observed payloads included cleanup beha
 `/vpn/scripts/linux/nsgclient18_32.deb` was reported in the Citrix NetScaler security bulletin blog discussion as an additional NetScaler Console IOC-scan finding adjacent to `/vpn/scripts/linux/nsgclient18.deb`; treat it as a community-observed hunting pivot and validate with surrounding request, process, and filesystem context.
 
 watchTowr also reports a backdoor administrator account named `gw_health`, SSH key placement attempts under `/root/.ssh`, `/nsconfig/ssh`, and `/nsconfig/.ssh`, a backdoor key fingerprint `SHA256:hGLHNG47ISWLin1Ik3o2KzgPLphQ3mjkGdp6DSeAiLo`, and a Dropbear SSH backdoor that may listen on TCP/37512.
+
+GTIG/Mandiant reports `nsginstaller*.deb` as part of the package-masquerading webshell file family under VPN client script paths. Treat wildcard matches as a prompt to inspect file type, contents, request history, and `httpd.conf` handler changes rather than as a standalone verdict.
 
 Binary Defense reports that the Platypus agent can masquerade as `.pl` files that are actually ELF binaries, including `/var/tmp/.ns_09343.pl` and `/netscaler.local/ns_827664.pl`. Prioritize triage of `.pl` files under `/var/tmp`, `/netscaler.local`, and `/var/core` with `file` or equivalent tooling, plus hidden Platypus data directories such as `/var/tmp/.ns_data` and `/var/core/.ns-cache/`.
 
@@ -790,11 +795,15 @@ Examples include:
 - `${IFS}` in attacker-controlled command strings
 - unexpected PHP execution for `.deb`, `.sig`, `.tgz`, `.rpm`, or other non-PHP resources
 - suspicious `AddHandler`, `AddType`, `AliasMatch`, `php_engine`, and `php_flag` directives, especially Perl CGI enablement such as `AddHandler cgi-script .pl`
-- web-shell functions such as `eval()`, `passthru()`, `shell_exec()`, `exec()`, `system()`, `popen()`, and `base64_decode()`
+- web-shell functions such as `eval()`, `passthru()`, `shell_exec()`, `exec()`, `system()`, `popen()`, `proc_open()`, `assert()`, and `base64_decode()`
 - `wc -c <` web-shell file-size command behavior
 - `HTTP_NSC_LDAP`
 - `HTTP_NSC_CLIENTTYPE`
+- `HTTP_NSC_USER`, `HTTP_NSC_NONCE`, and `HTTP_NSC_FT_HIDE`
+- `NSC_USER`, `NSC_NONCE`, and `NSC_FT_HIDE`
 - `HTTP_X_UX*`
+- WHIPSHOT concealment markers `<FATO>` and `</FATO>`
+- SLAPSHOT tunneler marker `UXD_IDLE_EXIT`
 - `INDEX:` User-Agent payload staging
 - ThreatLabz webshell/fingerprinting pivots including `Nx_7508`, `Nx_5936`, `Nx-zD`, `/var/kw2s11`, `/files/kw2-freebsd-x64-s11`, and `209.141.43.95`
 - `ns-88771-poc`
@@ -858,7 +867,7 @@ Examples include:
 - watchTowr proof/exfil/webshell markers such as `/var/tmp/cve88771`, `/var/tmp/cve88771_round2`, `/var/tmp/.sec.txt`, `/var/tmp/.cred.txt`, `ns_ctx.html`, `logon.js`, `ns0e82mz.txt`, `x.php`, `.x.php`, `health.php`, `pwn.txt`, and `p.txt`
 - Sliver delivery pivots involving `/HaKi2ufpiQ8AeVTZ/host`, `citrix3.bad`, and `IMPLANT_CAPABILITY_TUNNEL_TERMINAL_V1`
 - watchTowr Sliver pivots involving `176.65.148.54`, `/var/vpn/ns_helper`, `/nsconfig/.ns_helper/ns_helper`, and generated URI paths composed from `bundles`, `scripts`, `script`, `javascripts`, and `js`
-- watchTowr SSH backdoor pivots involving `/var/1`, `/var/walk`, `/usr/bin/walk`, `/tmp/sessions.log.d`, TCP/37512 listeners, `gw_health`, `support1`, and SSH key fingerprint `SHA256:hGLHNG47ISWLin1Ik3o2KzgPLphQ3mjkGdp6DSeAiLo`
+- watchTowr SSH backdoor pivots involving `/var/1`, `/var/walk`, `/usr/bin/walk`, `/tmp/sessions.log.d`, TCP/37512 listeners, `gw_health`, `support1`, SSH key fingerprint `SHA256:hGLHNG47ISWLin1Ik3o2KzgPLphQ3mjkGdp6DSeAiLo`, and published key-content pivots including `lo@vps`
 - eSentire cluster pivots including `nsgtrust.deb`, `entretiensol.com`, Platypus enrollment paths, `platypus-agent/public-ip-probe`, and `application/x-protobuf-platypus-v2`
 - config/private-key dump pivots including `===CONF:`, `===KEY:`, private-key markers, random `.css` files under `LogonPoint`, and `curl --data-binary` to TCP/8877
 - SAML/CVE-2026-88779 hunting pivots including `/saml/login`, `/cgi/samlauth`, `probe/1`, `scanner-probe`, and `nsaaad` crash artifacts
