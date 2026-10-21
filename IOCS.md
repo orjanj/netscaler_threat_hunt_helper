@@ -43,6 +43,7 @@ The source labels in this file refer to the public reporting below.
 - watchTowr post-exploitation analysis: https://watchtowr.com/intelligence/post-exploitation-analysis-artifacts-citrix-netscaler-cve-2026-88771/
 - watchTowr public IOC repository: https://github.com/watchtowrlabs/citrix-netscaler-cve-2026-88771-iocs
 - Zscaler ThreatLabz / Security Boulevard syndicated analysis: https://securityboulevard.com/2026/10/cve-2026-88771-inside-the-exploitation-of-a-critical-netscaler-rce-vulnerability/
+- Rapid7 NetScaler intrusion analysis: https://www.rapid7.com/blog/post/ra-netscaler-intrusions-chaining-cve-2026-88771-and-cve-2026-88779/
 - Sansec StyleSmuggler infrastructure context: https://sansec.io/research/stylesmuggler
 
 ## Network Indicators
@@ -155,6 +156,21 @@ Sources:
 `81.94.239.8` is reported by PitScaler/Poppelgaard as a config/private-key exfiltration receiver on TCP/8877. `138.199.60.5` is reported as a CVE-2026-88779 SAML crash-payload source. `194.26.29.88` is a Corelight/Poppelgaard reverse-shell host; `138.199.200.90` is an exfiltration destination from the PitScaler/Poppelgaard public IOC set. Treat these as hunting pivots and validate direction, timing, and appliance role before acting.
 
 `45.143.130.195` is reported by SOCRadar as NetScaler C2 infrastructure using HTTP on TCP/8899 and DNS on UDP/TCP/53.
+
+### Rapid7 (2026-10-19)
+
+Source: https://www.rapid7.com/blog/post/ra-netscaler-intrusions-chaining-cve-2026-88771-and-cve-2026-88779/
+
+```text
+209.74.64.192
+192.159.99.139
+179.60.146.241
+45.92.1.17
+46.151.182.18
+132.243.166.140
+```
+
+Rapid7 also reports `213.209.159.55`, `62.133.62.80`, `199.233.217.13`, `31.56.197.72`, `64.94.85.67`, `130.94.20.222`, and `173.231.39.244`; these are already represented above under other source groups. `v5v.in` is also already included in the domain set.
 
 ### Arctic Wolf Labs
 
@@ -436,6 +452,7 @@ Sources:
 - https://www.levelblue.com/blogs/spiderlabs-blog/citrix-netscaler-cve-2026-88771-observed-exploitation-artifacts-and-hunt-indicators
 - https://binarydefense.com/resources/blog/platypwned-when-a-citrix-0-day-lays-an-egg
 - https://securityboulevard.com/2026/10/cve-2026-88771-inside-the-exploitation-of-a-critical-netscaler-rce-vulnerability/
+- https://www.rapid7.com/blog/post/ra-netscaler-intrusions-chaining-cve-2026-88771-and-cve-2026-88779/
 
 ```text
 /vpn/scripts/linux/nsgclient18.deb
@@ -564,6 +581,27 @@ Nx_5936.pl
 agent.lock
 client.crt
 state.db
+/nsconfig/.slap/vc
+/nsconfig/.slap/vcscan-agent.sh
+/nsconfig/.slap/agent.pl
+/nsconfig/.slap/bridge.pl
+/nsconfig/.slap/boot.sh
+/nsconfig/.slap/reverse-agent.sh
+/nsconfig/.slap/.slap.receiver
+/nsconfig/.slap/.ctxs.receiver
+/nsconfig/.slap/receiver.deb
+/nsconfig/.relay/run.sh
+/nsconfig/.relay/target_agent.py
+/flash/.nsvm/nsvmd
+/flash/.nsvm/watchdog.sh
+/flash/.nsvm/guard.sh
+/flash/.nsvm/restart.sh
+/flash/.nsvm/nsvmd.tmp
+/flash/.nsvm/.stop
+/flash/.nsvm/.agent.log
+/flash/.nsvm/.wd.log
+/var/tmp/.ux/slapshot.py
+/var/tmp/.ux/whipd.py
 ```
 
 Some of these may be short-lived because observed payloads included cleanup behavior. Missing files therefore do not prove that execution did not occur.
@@ -588,6 +626,7 @@ Sources:
 - https://pitscaler.com/
 - https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
 - https://binarydefense.com/resources/blog/platypwned-when-a-citrix-0-day-lays-an-egg
+- https://www.rapid7.com/blog/post/ra-netscaler-intrusions-chaining-cve-2026-88771-and-cve-2026-88779/
 
 ```text
 ae22ef2517b5c0fb47f78745b9cb5260acee0e751b89bcd354640ff8bc8d29ec
@@ -731,11 +770,35 @@ c0ebf54be0aeddd5b953df8a60bff7fc88d571e948405c24f6b5d6c1aa17558a
 530fb1522dc0a023bc3412d576c52a553933d302ed445475501acf8e7cfea46b
   watchTowr - SSH backdoor binary /var/walk or /usr/bin/walk
 
+6774bfed99da38cec82e721de4bd64a67db7840efadcc71e7df02eb6f0a03c44
+  Rapid7 - updated .slap dropper 1.sh
+
+a0ba4e1ad622d9c3d950b4156d4430812d05bee216ab22c3804a9f7a80535556
+  Rapid7 - earlier .slap dropper 17447d.sh
+
+56a892d80096a9db4ca473a9c3109729c60a5ba901d6ba65948bdb1f4a6fb186
+  Rapid7 - nsvmd installer 2.sh / r.sh
+
+8e8b9532ce40eacfe1b4cf2b11241878b70b910aabd90b453b1460df19b51a4d
+  Rapid7 - scanner-freebsd-amd64 installer
+
+eaf0086237879bbaac00a5874c0e2ff84deede1ba10e6b706e2288fd3a31cdde
+  Rapid7 - FreeBSD reconnaissance scanner vc
+
+ffe052fc50271e7739d458b155df790438776032bfd125b974735e1dd9c0b138
+  Rapid7 - FreeBSD nsvmd proxy
+
 ```
 
 Hash hunting is deliberately limited to plausible payload/configuration file types and selected high-risk paths so that the tool does not hash an entire large appliance image unless necessary.
 
 ## Behavioral Hunting Pivots
+
+### Rapid7 webshell, persistence, and exfiltration
+
+Rapid7 observed cookie-authenticated PHP web shells mapped to `/logon/LogonPoint/custom/receiver.v2.min.css` and randomized hexadecimal `.css` suffixes. Commands were returned in HTTP 404 response bodies, so hunt for the URL pattern together with unusual cookies or response sizes rather than treating 404s alone as malicious. The script includes these URL and persistence-command strings as broad log pivots.
+
+Correlate `nsaaad` crashes, Pitboss reboots, and subsequent `ns_monuploadd_err.pl` execution; inspect both HA nodes for `.slap`, `.relay`, and `.nsvm` artifacts; and review evidence of `/bin/sh` mode `6555`, watchdog/cron/startup persistence, or forced HA failover. Rapid7 confirmed one configuration archive download through HTTP 200 with a response size matching the staged archive. Keep that confirmed exfiltration evidence distinct from archive creation or attempted upload alone.
 
 ### CISA 2026-10-09 CVE-2026-88779 / CVE-2026-88771 correlation note
 

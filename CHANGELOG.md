@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.16 - 2026-10-21
+
+- Added Rapid7's six previously missing SHA-256 hashes and six new network indicators.
+- Expanded Rapid7 `.slap`, `.relay`, `.nsvm`, and tunnel-component path coverage, plus CSS-alias and persistence behavior pivots.
+- Bumped script version to 1.16.
+
 ## 1.15 - 2026-10-17
 
 - Added GTIG/Mandiant WHIPSHOT and SLAPSHOT hunting pivots: `<FATO>`, `</FATO>`, additional `HTTP_NSC_*` / `NSC_*` header names, `proc_open()`, `assert()`, and `UXD_IDLE_EXIT`.

@@ -2,7 +2,7 @@
 # NetScaler CTX697096 Threat Hunt Helper
 # Defensive/read-only hunting for CVE-2026-88771 / CVE-2026-88772 / CVE-2026-88779 activity and related post-exploitation.
 #
-# Sources used for indicators and hunt logic (verified 2026-10-17):
+# Sources used for indicators and hunt logic (verified 2026-10-21):
 #   - Citrix CTX697096 security bulletin:
 #     https://support.citrix.com/external/article/CTX697096
 #   - NetScaler Console CVE-2026-107406 remediation guidance:
@@ -62,6 +62,8 @@
 #     https://github.com/rtkwlf/wolf-tools/tree/main/pack_alerts/202609-citrix-netscaler-active-exploitation-cve-2026-88771
 #   - Zscaler ThreatLabz / Security Boulevard syndicated analysis:
 #     https://securityboulevard.com/2026/10/cve-2026-88771-inside-the-exploitation-of-a-critical-netscaler-rce-vulnerability/
+#   - Rapid7 NetScaler intrusion analysis:
+#     https://www.rapid7.com/blog/post/ra-netscaler-intrusions-chaining-cve-2026-88771-and-cve-2026-88779/
 #
 # IMPORTANT:
 #   * A hit is a hunting lead, not proof of compromise.
@@ -78,7 +80,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.15"
+VERSION="1.16"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -268,6 +270,12 @@ IOC_IPS=(
   "212.86.125.40"      # watchTowr post-exploitation source
   "198.13.159.233"     # watchTowr post-exploitation source
   "45.12.239.191"      # watchTowr post-exploitation source
+  "209.74.64.192"      # Rapid7 nsvmd C2
+  "192.159.99.139"     # Rapid7 .slap C2, relay, reverse agent, and exfiltration
+  "179.60.146.241"     # Rapid7 1.sh payload server
+  "45.92.1.17"         # Rapid7 staging / loot infrastructure, TCP/30444
+  "46.151.182.18"      # Rapid7 payload delivery
+  "132.243.166.140"    # Rapid7 payload delivery
   "209.141.43.95"      # Zscaler ThreatLabz FreeBSD implant download server; also reported by Sansec in StyleSmuggler context
 )
 
@@ -296,7 +304,7 @@ IOC_DOMAINS=(
   "gurerasfalt.com"    # TENEX / Binary Defense Platypus certificate domain
   "rockinroyaltykids.com" # TENEX Platypus certificate domain
   "currydownsrvpark.com" # TENEX Platypus certificate domain
-  "v5v.in"             # World of EUC Slack community pitboss wave payload host
+  "v5v.in"             # World of EUC / Rapid7 nsvmd payload host and C2
   "pinggy.net"         # Huntback / Poppelgaard tunnel-fronted dropper domain
   "serveousercontent.com" # Huntback / Poppelgaard tunnel-fronted dropper domain
 )
@@ -368,8 +376,29 @@ IOC_PATHS=(
   "/var/tmp/boom"
   "/var/tmp/sh"
   "/nsconfig/.slap"
+  "/nsconfig/.slap/vc"
+  "/nsconfig/.slap/vcscan-agent.sh"
+  "/nsconfig/.slap/agent.pl"
+  "/nsconfig/.slap/bridge.pl"
+  "/nsconfig/.slap/boot.sh"
+  "/nsconfig/.slap/reverse-agent.sh"
+  "/nsconfig/.slap/.slap.receiver"
+  "/nsconfig/.slap/.ctxs.receiver"
+  "/nsconfig/.slap/receiver.deb"
+  "/nsconfig/.relay/run.sh"
+  "/nsconfig/.relay/target_agent.py"
+  "/flash/.nsvm/nsvmd"
+  "/flash/.nsvm/watchdog.sh"
+  "/flash/.nsvm/guard.sh"
+  "/flash/.nsvm/restart.sh"
+  "/flash/.nsvm/nsvmd.tmp"
+  "/flash/.nsvm/.stop"
+  "/flash/.nsvm/.agent.log"
+  "/flash/.nsvm/.wd.log"
   "/flash/nsconfig/.slap"
   "/var/tmp/.ux"
+  "/var/tmp/.ux/slapshot.py"
+  "/var/tmp/.ux/whipd.py"
   "/var/tmp/.slap-agent.log"
   "/var/tmp/.slap-httpd-test.log"
   "/var/tmp/.slap-diag.txt"
@@ -458,6 +487,12 @@ IOC_HASHES["c98aee75c5e199c9b5527984ce48675d665963f7cab8ce9f2e82465de6b58727"]="
 IOC_HASHES["0dcac605a3a0c37001552369a6a77003226b35ddee7710b554fcd0e6809a76d1"]="Binary Defense Platypus Windows agent, UPX-packed"
 IOC_HASHES["3754689fafacd2ff1c50781de2027afb1a736f9dadf48767afe560fc0f10a6f0"]="Binary Defense Platypus Windows agent, unpacked"
 IOC_HASHES["ed082f744f035035900f67edf438f2f7d0528ac501234f63d476d65273cdb9a1"]="Rapid7 / PitScaler .ctxs.receiver webshell sample"
+IOC_HASHES["6774bfed99da38cec82e721de4bd64a67db7840efadcc71e7df02eb6f0a03c44"]="Rapid7 updated .slap dropper 1.sh"
+IOC_HASHES["a0ba4e1ad622d9c3d950b4156d4430812d05bee216ab22c3804a9f7a80535556"]="Rapid7 earlier .slap dropper 17447d.sh"
+IOC_HASHES["56a892d80096a9db4ca473a9c3109729c60a5ba901d6ba65948bdb1f4a6fb186"]="Rapid7 nsvmd installer 2.sh / r.sh"
+IOC_HASHES["8e8b9532ce40eacfe1b4cf2b11241878b70b910aabd90b453b1460df19b51a4d"]="Rapid7 scanner-freebsd-amd64 installer"
+IOC_HASHES["eaf0086237879bbaac00a5874c0e2ff84deede1ba10e6b706e2288fd3a31cdde"]="Rapid7 FreeBSD reconnaissance scanner vc"
+IOC_HASHES["ffe052fc50271e7739d458b155df790438776032bfd125b974735e1dd9c0b138"]="Rapid7 FreeBSD nsvmd proxy"
 IOC_HASHES["74da9485815ee124e2ebe155dbcfb758b54bd97760956998abf64838c865f78b"]="Gotham / ThreatUnpacked SAML-attack kit artifact"
 IOC_HASHES["ec6d42cc99e3c7870dc11606643e8b296e4aadafaf886f05506e1f515aa55eee"]="Gotham / ThreatUnpacked SAML-attack kit artifact"
 IOC_HASHES["12b15fe585a21d33eeb863fc5a246596225a77185a314d55de3c980bbe11e9c0"]="Gotham / r/Citrix SAML-attack kit artifact"
@@ -487,6 +522,12 @@ IOC_HASHES["530fb1522dc0a023bc3412d576c52a553933d302ed445475501acf8e7cfea46b"]="
 
 # Strings / behavior pivots. These are intentionally broader than exact IOCs.
 LOG_PATTERNS=(
+  "receiver.min.css"
+  "receiver\\.min\\.[[:xdigit:]]+\\.css"
+  "receiver\\.v2\\.min\\.css"
+  "receiver\\.v2\\.min\\.[[:xdigit:]]+\\.css"
+  "sync HA files all"
+  "force HA failover"
   "SSL_HANDSHAKE_FAILURE"
   "DTLSv1.0"
   "Handshake failure-Internal Error"
