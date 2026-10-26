@@ -167,10 +167,14 @@ The interactive offline menu allows you to run specific hunts:
 4) Known file/path indicators
 5) HTTP log pivots (.deb/.sig/.ico/vpn paths)
 6) SHA-256 search of candidate files
-7) Show IOC list
-8) CVE-2026-88779 SAML configuration precondition
+7) TLS certificate and JARM pivots
+8) Show IOC list
+9) CVE-2026-88779 SAML configuration precondition
+10) PHP2Shell honeypot sources and behavior
 0) Back
 ```
+
+The PHP2Shell check keeps two source IPs from confirmed honeypot activity separate from the NetScaler campaign IOC set. It also searches for PHP startup memory/session errors and Apache-parent shell records. These are correlation pivots, not proof of NetScaler exploitation; process-parent and HTTP-body evidence may not exist in ordinary support-bundle logs.
 
 #### Files searched offline
 

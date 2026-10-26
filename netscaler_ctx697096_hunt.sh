@@ -64,6 +64,8 @@
 #     https://securityboulevard.com/2026/10/cve-2026-88771-inside-the-exploitation-of-a-critical-netscaler-rce-vulnerability/
 #   - Rapid7 NetScaler intrusion analysis:
 #     https://www.rapid7.com/blog/post/ra-netscaler-intrusions-chaining-cve-2026-88771-and-cve-2026-88779/
+#   - 0x4D31 PHP2Shell honeypot packet-to-process evidence (2026-10-24):
+#     https://github.com/0x4D31/honeypot-data/blob/main/reports/php2shell/2026-10-24-confirmed-rce.md
 #
 # IMPORTANT:
 #   * A hit is a hunting lead, not proof of compromise.
@@ -80,7 +82,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.16"
+VERSION="1.17"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -277,6 +279,18 @@ IOC_IPS=(
   "46.151.182.18"      # Rapid7 payload delivery
   "132.243.166.140"    # Rapid7 payload delivery
   "209.141.43.95"      # Zscaler ThreatLabz FreeBSD implant download server; also reported by Sansec in StyleSmuggler context
+)
+
+# PHP2Shell honeypot sources are separate from NetScaler campaign indicators.
+PHP2SHELL_HONEYPOT_IPS=(
+  "15.204.59.70"
+  "162.35.99.94"
+)
+
+PHP2SHELL_BEHAVIOR_PATTERNS=(
+  "Allowed memory size of [0-9]+ bytes exhausted.*Unknown on line 0"
+  "Session ID is too long or contains illegal characters"
+  "apache2.{0,160}/bin/sh|/bin/sh.{0,160}apache2"
 )
 
 IOC_DOMAINS=(
@@ -1089,6 +1103,23 @@ hunt_ip_iocs_offline() {
   search_tree_regex "$ROOT" "$regex" "Historical network IOCs"
 }
 
+build_php2shell_source_regex() {
+  local regex="" item
+  for item in "${PHP2SHELL_HONEYPOT_IPS[@]}"; do
+    [[ -n "$regex" ]] && regex+="|"
+    regex+="(^|[^0-9.])${item//./\.}([^0-9.]|$)"
+  done
+  printf '%s' "$regex"
+}
+
+hunt_php2shell_offline() {
+  local regex
+  regex=$(build_php2shell_source_regex)
+  search_tree_regex "$ROOT" "$regex" "PHP2Shell honeypot source IPs (correlation only)"
+  regex=$(build_regex_from_array PHP2SHELL_BEHAVIOR_PATTERNS)
+  search_tree_regex "$ROOT" "$regex" "PHP2Shell PHP/Apache behavior pivots"
+}
+
 hunt_webshell_patterns_offline() {
   local regex
   regex=$(build_regex_from_array WEBSHELL_PATTERNS)
@@ -1217,6 +1248,7 @@ offline_all() {
   hunt_cve_2026_88779_offline
   hunt_log_behavior_offline
   hunt_ip_iocs_offline
+  hunt_php2shell_offline
   hunt_tls_pivots_offline
   hunt_webshell_patterns_offline
   hunt_named_artifacts_offline
@@ -1247,6 +1279,10 @@ show_iocs() {
   printf '  No new standalone IP, domain, path, account, command-string, or hash IOC was published in that CISA/OpenText update. Correlate log-injection evidence, SAML crash/reboot events, and post-restart process/network/file changes in one timeline.\n' | emit_stream
   printf 'Network indicators:\n' | emit_stream
   printf '  %s\n' "${IOC_IPS[@]}" | emit_stream
+  printf '\nPHP2Shell honeypot source IPs (not NetScaler attribution):\n' | emit_stream
+  printf '  %s\n' "${PHP2SHELL_HONEYPOT_IPS[@]}" | emit_stream
+  printf 'PHP2Shell behavior patterns:\n' | emit_stream
+  printf '  %s\n' "${PHP2SHELL_BEHAVIOR_PATTERNS[@]}" | emit_stream
   printf '\nDomain indicators:\n' | emit_stream
   printf '  %s\n' "${IOC_DOMAINS[@]}" | emit_stream
   printf '\nFile/path indicators:\n' | emit_stream
@@ -1537,6 +1573,7 @@ Offline threat hunt - individual checks:
   7) TLS certificate and JARM pivots
   8) Show IOC list
   9) CVE-2026-88779 SAML configuration precondition
+ 10) PHP2Shell honeypot sources and behavior
   0) Back
 MENU
     printf 'Choice: '
@@ -1551,6 +1588,7 @@ MENU
       7) hunt_tls_pivots_offline ;;
       8) show_iocs ;;
       9) hunt_cve_2026_88779_offline ;;
+      10) hunt_php2shell_offline ;;
       0) return ;;
       *) printf 'Invalid choice.\n' ;;
     esac

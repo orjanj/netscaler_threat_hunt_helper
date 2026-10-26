@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.17 - 2026-10-26
+
+- Added a separate offline PHP2Shell hunt for two confirmed honeypot source IPs and documented PHP/Apache behavior pivots.
+- Kept honeypot indicators separate from NetScaler campaign IOCs and clarified that matches do not establish NetScaler exploitation.
+- Added provenance and source limitations to the IOC reference and README.
+
 ## 1.16 - 2026-10-21
 
 - Added Rapid7's six previously missing SHA-256 hashes and six new network indicators.

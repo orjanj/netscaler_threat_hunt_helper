@@ -45,6 +45,28 @@ The source labels in this file refer to the public reporting below.
 - Zscaler ThreatLabz / Security Boulevard syndicated analysis: https://securityboulevard.com/2026/10/cve-2026-88771-inside-the-exploitation-of-a-critical-netscaler-rce-vulnerability/
 - Rapid7 NetScaler intrusion analysis: https://www.rapid7.com/blog/post/ra-netscaler-intrusions-chaining-cve-2026-88771-and-cve-2026-88779/
 - Sansec StyleSmuggler infrastructure context: https://sansec.io/research/stylesmuggler
+- 0x4D31 PHP2Shell honeypot packet-to-process evidence (2026-10-24): https://github.com/0x4D31/honeypot-data/blob/main/reports/php2shell/2026-10-24-confirmed-rce.md
+
+## PHP2Shell Honeypot Detection Pivots
+
+Source: 0x4D31 packet-to-process honeypot report, published 2026-10-24.
+
+```text
+15.204.59.70
+162.35.99.94
+```
+
+The report correlates 35 Apache-parent `/bin/sh` executions across three honeypots with HTTP requests from these addresses. The targets were single-worker Apache `mod_php` deployments running PHP 8.4.26. Treat the addresses as PHP2Shell honeypot-source correlation pivots only: they are not confirmed NetScaler attackers, and should not be merged into the CVE-2026-88771 campaign list or used as standalone block indicators.
+
+The offline hunt also searches for these source-reported behavior artifacts:
+
+```text
+PHP memory-limit exhaustion during request startup (`Unknown on line 0`)
+PHP session ID too long / illegal characters
+Apache parent process associated with `/bin/sh`
+```
+
+These patterns are investigation leads, not a complete exploit signature or proof of compromise. Normal access logs may not contain request bodies or process-parent telemetry. The report's fixed request-body SHA-256 values apply to decoded HTTP bodies and are not directly comparable to whole PCAPs, log files, or arbitrary files; the helper does not treat them as file hashes. Successful NetScaler exploitation remains unverified by this source.
 
 ## Network Indicators
 
