@@ -43,9 +43,50 @@ The source labels in this file refer to the public reporting below.
 - watchTowr post-exploitation analysis: https://watchtowr.com/intelligence/post-exploitation-analysis-artifacts-citrix-netscaler-cve-2026-88771/
 - watchTowr public IOC repository: https://github.com/watchtowrlabs/citrix-netscaler-cve-2026-88771-iocs
 - Zscaler ThreatLabz / Security Boulevard syndicated analysis: https://securityboulevard.com/2026/10/cve-2026-88771-inside-the-exploitation-of-a-critical-netscaler-rce-vulnerability/
+- Zscaler ThreatLabz original analysis (2026-10-16): https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability
 - Rapid7 NetScaler intrusion analysis: https://www.rapid7.com/blog/post/ra-netscaler-intrusions-chaining-cve-2026-88771-and-cve-2026-88779/
 - Sansec StyleSmuggler infrastructure context: https://sansec.io/research/stylesmuggler
 - 0x4D31 PHP2Shell honeypot packet-to-process evidence (2026-10-24): https://github.com/0x4D31/honeypot-data/blob/main/reports/php2shell/2026-10-24-confirmed-rce.md
+
+## Source Review - 2026-10-28
+
+The 28 October review found missing local coverage of older published indicators, not verified new NetScaler attack observations after 26 October at 19:57 (timezone unspecified):
+
+- Zscaler's 16 October original report lists 28 potential source IPs. Two were already covered (`82.167.14.7`, `130.12.182.7`); the other 26 are now included separately as correlation-only sources below.
+- `199.233.217.13`, already documented here under TENEX / Binary Defense and also reported by Rapid7 as payload-delivery infrastructure, was missing from the script's network array and is now included.
+- CISA's 23 October PHP2Shell probe / PoC markers are now covered separately below.
+- watchTowr's IOC file history returned only the initial 6 October publication (`f1d41fcd15a0e45f688598b9e9aee8b94d08a9ef`). Its listed network indicators and five payload hashes were already covered. Elastic's rule is dated 23 October and its shell-token pivots are already represented in the helper; this does not imply full rule equivalence.
+- PitScaler's 27 October commits `1d882b2` and `6263535` corroborate and expand earlier Rapid7 indicators. The helper already covers Rapid7's six hashes and principal implant paths. Rubrik's Oracle/Redis/Asterisk Platypus infrastructure is not added as NetScaler campaign evidence; Rubrik reports no evidence of NetScaler exploitation in those attacks.
+
+Citrix CTX697263 was updated on 27 October with PHP2Shell remediation builds: `14.1-73.49`, `13.1-64.32`, `14.1-73.49 FIPS`, and `13.1.37.286 FIPS/NDcPP` or later applicable releases. This is remediation guidance, not an IOC; the helper does not determine patch status. Source: https://support.citrix.com/external/article/CTX697263
+
+History references:
+
+- https://github.com/watchtowrlabs/citrix-netscaler-cve-2026-88771-iocs/commits/main/iocs.md
+- https://github.com/emilstahl/pitscaler/commit/1d882b2aa3f49a5bf894ae61676e2e3eb646e735
+- https://github.com/emilstahl/pitscaler/commit/62635359352c5fa7782b42a0de1ce20211ca3a27
+
+## PHP2Shell CISA Probe / PoC Markers
+
+Source: https://raw.githubusercontent.com/cisagov/SIGMA_Rules/develop/CISA_SIGMA_261429_CVE_2026_109618-109619_PHP2Shell_TLP_CLEAR.yaml
+
+CISA's TLP:CLEAR Sigma rule (test status, modified 2026-10-23) supplies these markers, added to the separate offline PHP2Shell behavior hunt after review on 2026-10-28:
+
+```text
+B7kQpoc61
+B7kQpoc618
+B7kQpoc619
+BNDRY12345
+BGCTXBOUNDARY
+php2shell-scan
+php2shell-scan/109618
+php2shell-verify
+php2shell-poc
+```
+
+These are probe / public PoC correlation pivots, not confirmed NetScaler campaign indicators or evidence of successful execution. Authorized testing, copied exploit text, and saved reports can also match. Request-body markers may be absent from ordinary access logs. The helper uses this narrow marker subset, not a full implementation of CISA's rule; generic multipart fields, repeated padding, and command names are deliberately not standalone detections. CISA warns that some rule branches have medium-high false-positive rates.
+
+These markers predate 26 October; this is newly added local coverage, not a claim of newly observed attacks after that date.
 
 ## PHP2Shell Honeypot Detection Pivots
 
@@ -232,6 +273,43 @@ Sources:
 ```
 
 ThreatLabz reports `209.141.43.95` as the download server for a Rust-based FreeBSD implant in CVE-2026-88771 exploitation attempts, with retrieval from `/files/kw2-freebsd-x64-s11` and execution from `/var/kw2s11`. Sansec previously associated the same IP with Adobe Commerce/Magento StyleSmuggler infrastructure. Treat this as a contextual hunting indicator requiring direction, timing, and payload context, not as proof of shared attribution or as an unconditional blocklist entry.
+
+### Zscaler Exploitation Sources (Correlation Only)
+
+Source: https://www.zscaler.com/blogs/security-research/cve-2026-88771-inside-exploitation-critical-netscaler-rce-vulnerability
+
+Published 2026-10-16; added locally 2026-10-28. These 26 addresses complete the source table alongside the already included `82.167.14.7` and `130.12.182.7`:
+
+```text
+45.153.212.101
+46.233.40.20
+46.236.167.143
+46.33.33.95
+49.150.197.119
+78.190.152.64
+81.10.79.197
+95.105.74.172
+100.38.125.66
+102.213.132.123
+102.222.146.45
+103.181.212.245
+103.197.249.161
+103.83.146.100
+111.92.128.89
+114.145.49.215
+120.244.160.182
+125.62.88.26
+154.183.158.198
+154.241.254.9
+174.60.63.37
+177.52.203.23
+183.63.88.227
+190.117.56.56
+195.62.37.119
+207.48.184.10
+```
+
+The script keeps these in `ZSCALER_SOURCE_IPS`, separate from the main network array, but includes them in offline and live network matching. They are historical source-address pivots, not an unconditional blocklist. PitScaler's per-address context identifies many as residential/ISP or CGNAT infrastructure; unrelated subscribers may share or later receive these addresses. Validate the actual request, direction and observation time. Do not infer successful compromise or actor attribution from an IP match.
 
 ### NetScaler community reports
 

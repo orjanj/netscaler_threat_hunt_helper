@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.18 - 2026-10-28
+
+- Added 26 previously missing Zscaler exploitation source IPs from the 16 October original report as a separately labelled correlation-only group in offline/live network matching and IOC output.
+- Restored `199.233.217.13` to active network coverage; it was already documented and is reported by TENEX and Rapid7.
+- Added distinctive PHP2Shell probe / public PoC markers from CISA's TLP:CLEAR Sigma rule, modified 2026-10-23, to the separate offline behavior hunt.
+- Documented that the markers are correlation leads, may reflect authorized testing, and are not newly observed NetScaler exploitation after 26 October.
+- Recorded source-history review and Citrix CTX697263's 27 October remediation guidance separately from IOC evidence.
+
 ## 1.17 - 2026-10-26
 
 - Added a separate offline PHP2Shell hunt for two confirmed honeypot source IPs and documented PHP/Apache behavior pivots.

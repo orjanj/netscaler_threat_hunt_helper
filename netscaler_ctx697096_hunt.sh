@@ -2,7 +2,7 @@
 # NetScaler CTX697096 Threat Hunt Helper
 # Defensive/read-only hunting for CVE-2026-88771 / CVE-2026-88772 / CVE-2026-88779 activity and related post-exploitation.
 #
-# Sources used for indicators and hunt logic (verified 2026-10-21):
+# Sources used for indicators and hunt logic (reviewed through 2026-10-28):
 #   - Citrix CTX697096 security bulletin:
 #     https://support.citrix.com/external/article/CTX697096
 #   - NetScaler Console CVE-2026-107406 remediation guidance:
@@ -82,7 +82,7 @@ if (( BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 3) ))
   exit 2
 fi
 
-VERSION="1.17"
+VERSION="1.18"
 SCRIPT_NAME="NetScaler CTX697096 Threat Hunt Helper"
 REPORT="${NETSCALER_HUNT_REPORT:-$(pwd -P)/netscaler_hunt_$(date +%Y%m%d_%H%M%S).log}"
 FINDINGS_FILE="${NETSCALER_HUNT_FINDINGS_FILE:-$(pwd -P)/netscaler_findings_$(date +%Y%m%d_%H%M%S).txt}"
@@ -279,6 +279,36 @@ IOC_IPS=(
   "46.151.182.18"      # Rapid7 payload delivery
   "132.243.166.140"    # Rapid7 payload delivery
   "209.141.43.95"      # Zscaler ThreatLabz FreeBSD implant download server; also reported by Sansec in StyleSmuggler context
+  "199.233.217.13"
+)
+
+ZSCALER_SOURCE_IPS=(
+  "45.153.212.101"
+  "46.233.40.20"
+  "46.236.167.143"
+  "46.33.33.95"
+  "49.150.197.119"
+  "78.190.152.64"
+  "81.10.79.197"
+  "95.105.74.172"
+  "100.38.125.66"
+  "102.213.132.123"
+  "102.222.146.45"
+  "103.181.212.245"
+  "103.197.249.161"
+  "103.83.146.100"
+  "111.92.128.89"
+  "114.145.49.215"
+  "120.244.160.182"
+  "125.62.88.26"
+  "154.183.158.198"
+  "154.241.254.9"
+  "174.60.63.37"
+  "177.52.203.23"
+  "183.63.88.227"
+  "190.117.56.56"
+  "195.62.37.119"
+  "207.48.184.10"
 )
 
 # PHP2Shell honeypot sources are separate from NetScaler campaign indicators.
@@ -291,6 +321,7 @@ PHP2SHELL_BEHAVIOR_PATTERNS=(
   "Allowed memory size of [0-9]+ bytes exhausted.*Unknown on line 0"
   "Session ID is too long or contains illegal characters"
   "apache2.{0,160}/bin/sh|/bin/sh.{0,160}apache2"
+  "(^|[^[:alnum:]_])(B7kQpoc61[89]?|BNDRY12345|BGCTXBOUNDARY|php2shell-(scan(/109618)?|verify|poc))([^[:alnum:]_]|$)"
 )
 
 IOC_DOMAINS=(
@@ -1064,7 +1095,7 @@ build_regex_from_array() {
 
 build_network_ioc_regex() {
   local regex="" item escaped
-  for item in "${IOC_IPS[@]}"; do
+  for item in "${IOC_IPS[@]}" "${ZSCALER_SOURCE_IPS[@]}"; do
     [[ -n "$regex" ]] && regex+="|"
     regex+="${item//./\.}"
   done
@@ -1279,6 +1310,9 @@ show_iocs() {
   printf '  No new standalone IP, domain, path, account, command-string, or hash IOC was published in that CISA/OpenText update. Correlate log-injection evidence, SAML crash/reboot events, and post-restart process/network/file changes in one timeline.\n' | emit_stream
   printf 'Network indicators:\n' | emit_stream
   printf '  %s\n' "${IOC_IPS[@]}" | emit_stream
+  printf '\nZscaler exploitation source IPs (correlation only, not a blocklist):\n' | emit_stream
+  printf '  Includes residential/ISP and CGNAT sources; correlate with malicious requests and timestamps before acting.\n' | emit_stream
+  printf '  %s\n' "${ZSCALER_SOURCE_IPS[@]}" | emit_stream
   printf '\nPHP2Shell honeypot source IPs (not NetScaler attribution):\n' | emit_stream
   printf '  %s\n' "${PHP2SHELL_HONEYPOT_IPS[@]}" | emit_stream
   printf 'PHP2Shell behavior patterns:\n' | emit_stream

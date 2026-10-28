@@ -174,7 +174,7 @@ The interactive offline menu allows you to run specific hunts:
 0) Back
 ```
 
-The PHP2Shell check keeps two source IPs from confirmed honeypot activity separate from the NetScaler campaign IOC set. It also searches for PHP startup memory/session errors and Apache-parent shell records. These are correlation pivots, not proof of NetScaler exploitation; process-parent and HTTP-body evidence may not exist in ordinary support-bundle logs.
+The PHP2Shell check keeps two source IPs from confirmed honeypot activity separate from the NetScaler campaign IOC set. It also searches for PHP startup memory/session errors, Apache-parent shell records, and distinctive probe / public PoC markers from CISA's 23 October Sigma rule. These are correlation pivots, not proof of NetScaler exploitation; authorized testing can match, and process-parent and HTTP-body evidence may not exist in ordinary support-bundle logs.
 
 #### Files searched offline
 
@@ -398,6 +398,8 @@ The script combines indicators and behavioral hunting ideas from public reportin
 ## Indicator reference
 
 See [IOCS.md](IOCS.md) for the built-in IP, domain, file/path, SHA-256, and behavioral hunting indicators.
+
+The 28 October source review adds missing coverage from older reports, not verified new attacks after 26 October: 26 Zscaler source IPs are kept in a separate correlation-only group, and the already documented TENEX/Rapid7 address `199.233.217.13` is now searched. Many Zscaler sources are residential/ISP or CGNAT addresses; do not use that group as a standalone blocklist. See the IOC reference for source dates, history checks, and the separate CTX697263 remediation update.
 
 These are historical hunting indicators, not a complete or permanent blocklist. An exact match needs surrounding context, and the absence of these indicators does not exclude exploitation.
 
